@@ -48,7 +48,7 @@ try {
     for(const role of ['SUPER_ADMIN','ADMIN','SALES_MANAGER','SALES_AGENT','VIEWER'])assert.ok('thread' in await communicationRead({},id,headers[role]));
     await assert.rejects(communicationRead({},id,headers.AGENT_B));await assert.rejects(communicationRead({},id,headers.CUSTOMER));await assert.rejects(communicationRead({},id,new Headers()));
     await assert.rejects(communicationCommand(id,{action:'read'},headers.VIEWER));await assert.rejects(communicationCommand(id,{action:'read'},headers.AGENT_B));
-    const scoped=await communicationRead({},undefined,headers.AGENT_B);assert.ok('items' in scoped&&!scoped.items.some(t=>t.id===id));assert.notEqual(a.id,b.id);
+    const scoped=await communicationRead({},undefined,headers.AGENT_B);assert.ok('items' in scoped&&!(scoped as {items:{id:unknown}[]}).items.some(t=>t.id===id));assert.notEqual(a.id,b.id);
     for(const role of ['CUSTOMER','VIEWER','AGENT_B']){const r=await fetch(base+'/api/admin/communications/'+id+'/',{method:'POST',headers:{...Object.fromEntries(headers[role]),'Content-Type':'application/json'},body:JSON.stringify({action:'read'})});assert.ok([403,404].includes(r.status));}
     assert.equal((await fetch(base+'/api/admin/communications/')).status,401);
   });
