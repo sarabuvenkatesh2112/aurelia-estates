@@ -1,5 +1,11 @@
 export interface Property {
   id: string;
+  slug?: string;
+  featured?: boolean;
+  maxPrice?: number;
+  maxArea?: number;
+  minArea?: number;
+  availability?: string;
   name: string;
   city: string;
   neighbourhood: string;
@@ -7,7 +13,7 @@ export interface Property {
   bedrooms: number;
   area: number;
   price: number;
-  status: 'Under construction' | 'Ready to move';
+  status: string;
   possession: string;
   description: string;
   amenities: string[];

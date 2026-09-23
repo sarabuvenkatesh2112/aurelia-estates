@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import { AccountLink } from '@/components/account/customer-context';
 import { Menu, ArrowUpRight } from 'lucide-react';
-import { motion } from 'motion/react';
+
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ export function Header() {
             </a>
           ))}
         </nav>
+        <AccountLink />
         <button className="nav-visit" onClick={() => open({ kind: 'visit' })}>
           Schedule a visit <ArrowUpRight size={16} />
         </button>
@@ -61,10 +63,8 @@ export function Header() {
           </DialogDescription>
           <nav aria-label="Mobile navigation">
             {navItems.map((n, i) => (
-              <motion.a
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.055 }}
+              <a
+                style={{ '--link-index': i } as CSSProperties}
                 key={n}
                 href={`#${n.toLowerCase()}`}
                 onClick={() => setMenu(false)}
@@ -72,7 +72,7 @@ export function Header() {
                 <small>0{i + 1}</small>
                 {n}
                 <ArrowUpRight />
-              </motion.a>
+              </a>
             ))}
           </nav>
           <button

@@ -609,7 +609,7 @@ img {
   display: grid;
   place-items: center;
 }
-.filtered .property-rail {
+.filtered .filtered-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 50px 32px;
@@ -1588,7 +1588,7 @@ img {
     scroll-snap-align: start;
     flex-basis: 72%;
   }
-  .filtered .property-rail {
+  .filtered .filtered-grid {
     overflow: visible;
   }
   .property-image {
@@ -1888,7 +1888,7 @@ img {
     width: 32px;
     height: 32px;
   }
-  .filtered .property-rail {
+  .filtered .filtered-grid {
     grid-template-columns: 1fr;
     gap: 40px;
   }

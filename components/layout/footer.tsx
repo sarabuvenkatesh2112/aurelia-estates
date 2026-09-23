@@ -1,8 +1,10 @@
 'use client';
+import { useMotionPreference } from '@/components/animation/motion-preference';
 import { useState } from 'react';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useExperience } from './experience-provider';
 export function Footer() {
+  const { reduced, system, toggle } = useMotionPreference();
   const { open } = useExperience();
   const [subscribed, setSubscribed] = useState(false);
   return (
@@ -74,6 +76,13 @@ export function Footer() {
           © {new Date().getFullYear()} Aurelia Estates. A portfolio concept.
         </p>
         <nav aria-label="Footer">
+          <button onClick={toggle} aria-pressed={reduced} disabled={system}>
+            {system
+              ? 'Reduced motion (system)'
+              : reduced
+                ? 'Enable motion'
+                : 'Reduce motion'}
+          </button>
           <a href="#residences">Residences</a>
           <a href="#about">Our philosophy</a>
           {['Privacy', 'Terms'].map((title) => (
@@ -85,7 +94,7 @@ export function Footer() {
                   title: `${title} — portfolio preview`,
                   text:
                     title === 'Privacy'
-                      ? 'This frontend demonstration does not send form details to a server, store contact information or connect to an AI service. Form and conversation values remain only in page memory and disappear when you reload. The deployed hosting provider may process normal access logs.'
+                      ? 'Accounts, shortlists, saved searches, enquiries and visit requests are stored in Neon PostgreSQL. A necessary HttpOnly cookie maintains your sign-in session. Authentication stores security rate-limit and session device metadata. Anonymous activity counts contain no cookies, fingerprints, IP addresses or conversation text. The collection guide uses database filters, with no AI service. Newsletter previews remain local. All properties are fictional; requests are not confirmed bookings.'
                       : 'Aurelia Estates is a fictional portfolio brand. All residences, developers, prices, distances, possession dates, statistics and resident stories are illustrative. Photography is architectural mood imagery and does not depict the listed properties. Nothing on this site constitutes an offer for sale or a confirmed booking.',
                 })
               }

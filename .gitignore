@@ -37,3 +37,12 @@ next-env.d.ts
 /outputs/
 /work/
 *.tsbuildinfo
+
+# Local package cache and Blender recovery copies
+/.cache/
+*.blend1
+
+!.env.example
+/generated/prisma/
+/.local-postgres/
+/.sites-runtime/

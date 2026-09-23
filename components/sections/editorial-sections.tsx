@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
@@ -11,10 +11,11 @@ import {
   Sparkles,
 } from 'lucide-react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useMotionScene } from '@/hooks/use-motion-scene';
+import { CinematicImage } from '@/components/animation/cinematic-image';
+import { motionTokens } from '@/lib/motion/config';
 import { useExperience } from '@/components/layout/experience-provider';
 import { MagneticButton } from '@/components/animation/magnetic-button';
-import { properties } from '@/data/properties';
 import { locations, testimonials } from '@/data/editorial';
 export function Introduction() {
   return (
@@ -45,7 +46,7 @@ export function Introduction() {
   );
 }
 export function Developments() {
-  const { open } = useExperience();
+  const { open, properties } = useExperience();
   return (
     <section id="developments" className="developments section-pad">
       <div className="section-heading">
@@ -64,10 +65,9 @@ export function Developments() {
         </p>
       </div>
       <div className="development-pair">
-        {[properties[0], properties[1]].map((p, i) => (
+        {properties.slice(0, 2).map((p, i) => (
           <article key={p.id} className="development">
             <button
-              data-image-reveal
               data-cursor="Explore"
               className="development-image"
               onClick={() => open({ kind: 'property', property: p })}
@@ -81,12 +81,16 @@ export function Developments() {
               <span>0{i + 1}</span>
               <ArrowUpRight />
             </button>
-            <div>
+            <div className="development-caption">
               <p className="eyebrow">
                 {p.city} / {p.type.toUpperCase()} COLLECTION
               </p>
               <h3>
-                <button onClick={() => open({ kind: 'property', property: p })}>
+                <button
+                  data-preview={i}
+                  data-cursor="Explore"
+                  onClick={() => open({ kind: 'property', property: p })}
+                >
                   {p.name}
                 </button>
               </h3>
@@ -104,29 +108,45 @@ export function Developments() {
 }
 export function Statistics() {
   const root = useRef<HTMLElement>(null);
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const ctx = gsap.context(() => {
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      gsap.utils.toArray<HTMLElement>('[data-count]').forEach((el) => {
-        const count = { value: 0 };
-        gsap.to(count, {
-          value: Number(el.dataset.count),
-          duration: 1.8,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: root.current,
-            start: 'top 85%',
-            once: true,
-          },
+  useMotionScene(root, ({ reduced }) => {
+    const nodes = Array.from(
+      root.current?.querySelectorAll<HTMLElement>('[data-count]') || [],
+    );
+    if (reduced) {
+      nodes.forEach(
+        (node) =>
+          (node.textContent = Number(node.dataset.count).toLocaleString(
+            'en-IN',
+          )),
+      );
+      return;
+    }
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: root.current, start: 'top 82%', once: true },
+    });
+    nodes.forEach((node, i) => {
+      const counter = { value: 0 };
+      tl.to(
+        counter,
+        {
+          value: Number(node.dataset.count),
+          duration: 1.8 + i * 0.15,
+          ease: 'power3.out',
           onUpdate: () => {
-            el.textContent = Math.round(count.value).toLocaleString('en-IN');
+            node.textContent = Math.round(counter.value).toLocaleString(
+              'en-IN',
+            );
           },
-        });
-      });
-    }, root);
-    return () => ctx.revert();
-  }, []);
+        },
+        i * 0.12,
+      );
+      tl.from(
+        node.parentElement,
+        { y: 22, opacity: 0.1, duration: 1, ease: motionTokens.ease.reveal },
+        i * 0.12,
+      );
+    });
+  });
   return (
     <section ref={root} className="statistics section-pad">
       <p className="eyebrow">
@@ -141,8 +161,9 @@ export function Statistics() {
         ].map(([n, label]) => (
           <article key={label}>
             <strong>
+              {Number(n) === 2500 && <small className="stat-currency">₹</small>}
               <span data-count={n}>{Number(n).toLocaleString('en-IN')}</span>
-              <em>+</em>
+              <em>{Number(n) === 2500 ? 'Cr+' : '+'}</em>
             </strong>
             <p>{label}</p>
           </article>
@@ -152,6 +173,7 @@ export function Statistics() {
   );
 }
 export function Locations() {
+  const { properties } = useExperience();
   const [selected, setSelected] = useState(0);
   return (
     <section id="locations" className="locations section-pad">
@@ -214,6 +236,30 @@ export function Locations() {
             </button>
           ))}
         </div>
+        <motion.div
+          className="location-connectivity"
+          key={selected}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: motionTokens.curve }}
+        >
+          <div>
+            <strong>
+              {String(
+                properties.filter((p) => p.city === locations[selected].city)
+                  .length,
+              ).padStart(2, '0')}
+            </strong>
+            <span>RESIDENCES IN THE COLLECTION</span>
+          </div>
+          <p>
+            {properties
+              .find((p) => p.city === locations[selected].city)
+              ?.landmarks.slice(0, 2)
+              .join(' · ')}
+          </p>
+          <small>Illustrative connections and distances.</small>
+        </motion.div>{' '}
       </div>
       <div
         className="location-visual"
@@ -221,27 +267,22 @@ export function Locations() {
         role="tabpanel"
         aria-labelledby={`location-tab-${selected}`}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={selected}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <Image
-              src={locations[selected].image}
-              alt={`Architectural mood for ${locations[selected].city}`}
-              fill
-              sizes="(max-width: 700px) 100vw, 55vw"
-            />
-            <div className="location-caption">
-              <p>{locations[selected].caption}</p>
-              <span>{locations[selected].area}</span>
-              <small>CONCEPT DESTINATION STUDY · NO LIVE MAP</small>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        <CinematicImage
+          src={locations[selected].image}
+          alt={`Architectural mood for ${locations[selected].city}`}
+          sizes="(max-width: 700px) 100vw, 55vw"
+        />
+        <motion.div
+          className="location-caption"
+          key={selected}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.12, ease: motionTokens.curve }}
+        >
+          <p>{locations[selected].caption}</p>
+          <span>{locations[selected].area}</span>
+          <small>CONCEPT DESTINATION STUDY · NO LIVE MAP</small>
+        </motion.div>
       </div>
     </section>
   );
@@ -259,30 +300,39 @@ const amenityCopy = [
     'Nature, woven into your day.',
     'Shaded walks, private courtyards and layered gardens make the outdoors part of home.',
   ],
+  [
+    'A welcome, quietly anticipated.',
+    'Thoughtful concierge spaces create a warm arrival and a natural place to ask for a little assistance.',
+  ],
+  [
+    'Room for one more lap.',
+    'An open sky, still water and generous poolside terraces invite a moment away from the pace of the city.',
+  ],
+  [
+    'A little energy, every day.',
+    'Flexible fitness spaces and outdoor movement areas make a daily practice feel entirely your own.',
+  ],
 ];
 export function Lifestyle() {
   const [active, setActive] = useState(0);
   return (
     <section className="lifestyle section-pad">
       <div className="lifestyle-photo" data-image-reveal>
-        <Image
+        <CinematicImage
           src={
             [
               '/images/pool.webp',
               '/images/interior.webp',
               '/images/garden.webp',
+              '/images/lounge.webp',
+              '/images/villa.webp',
+              '/images/exterior.webp',
             ][Math.max(0, active)]
           }
-          alt={
-            [
-              'Pool and relaxation spaces',
-              'Warm private lounge',
-              'Lush landscaped gardens',
-            ][Math.max(0, active)]
-          }
-          fill
-          sizes="(max-width: 700px) 100vw, 55vw"
-        />
+          alt={amenityCopy[Math.max(0, active)][0]}
+          sizes="(max-width:700px) 100vw, 55vw"
+          direction="vertical"
+        />{' '}
         <span className="eyebrow">THE EVERYDAY, ELEVATED.</span>
       </div>
       <div className="lifestyle-copy">
@@ -298,7 +348,7 @@ export function Lifestyle() {
         </p>
         <div className="amenities">
           {amenityCopy.map(([title, description], i) => (
-            <div key={title}>
+            <div key={title} className={active === i ? 'active' : ''}>
               <button
                 aria-expanded={active === i}
                 aria-controls={`amenity-${i}`}
@@ -307,7 +357,20 @@ export function Lifestyle() {
                 {title}
                 {active === i ? <Minus size={17} /> : <Plus size={17} />}
               </button>
-              {active === i && <p id={`amenity-${i}`}>{description}</p>}
+              <AnimatePresence initial={false}>
+                {active === i && (
+                  <motion.div
+                    className="amenity-description"
+                    id={`amenity-${i}`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: motionTokens.curve }}
+                  >
+                    <p>{description}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
         </div>
@@ -431,7 +494,8 @@ export function AssistantTeaser() {
           Start a conversation <ArrowUpRight size={18} />
         </button>
       </div>
-      <button
+      <motion.button
+        layoutId="assistant-surface"
         className="prompt-preview"
         onClick={() => open({ kind: 'assistant' })}
       >
@@ -444,7 +508,7 @@ export function AssistantTeaser() {
         <span className="prompt-bottom">
           LET’S FIND YOUR PLACE <ArrowRight size={20} />
         </span>
-      </button>
+      </motion.button>
     </section>
   );
 }

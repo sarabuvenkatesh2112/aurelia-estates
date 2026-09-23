@@ -1,0 +1,992 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProjectStatus {
+  PRE_LAUNCH
+  NEW_LAUNCH
+  UNDER_CONSTRUCTION
+  READY_TO_MOVE
+  SOLD_OUT
+  ARCHIVED
+}
+
+enum PropertyType {
+  APARTMENT
+  VILLA
+  PENTHOUSE
+}
+
+enum UnitAvailability {
+  AVAILABLE
+  HOLD
+  RESERVED
+  BOOKED
+  SOLD
+  NOT_RELEASED
+}
+
+enum MediaType {
+  HERO
+  GALLERY
+  VIDEO
+  FLOOR_PLAN
+  MASTER_PLAN
+  BROCHURE
+  EXTERIOR
+  INTERIOR
+  AMENITY
+}
+
+enum LeadStatus {
+  VISIT_REQUESTED
+  VISIT_SCHEDULED
+  NEW
+  CONTACTED
+  QUALIFIED
+  SITE_VISIT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum VisitStatus {
+  REQUESTED
+  CONFIRMED
+  RESCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum NearbyCategory {
+  AIRPORT
+  IT_HUB
+  SCHOOL
+  HOSPITAL
+  MALL
+  BEACH
+  METRO
+  HIGHWAY
+  RAILWAY_STATION
+  BUSINESS_DISTRICT
+}
+
+enum EventKind {
+  PROJECT_VIEWED
+  UNIT_VIEWED
+  FILTER_USED
+  SEARCH_PERFORMED
+  SCHEDULE_VISIT_STARTED
+  SCHEDULE_VISIT_SUBMITTED
+  ENQUIRY_SUBMITTED
+  BROCHURE_CLICKED
+  AI_ASSISTANT_OPENED
+}
+
+model Developer {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String    @unique
+  description     String
+  logoUrl         String?
+  website         String?
+  establishedYear Int?
+  city            String
+  active          Boolean   @default(true)
+  projects        Project[]
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+}
+
+model Location {
+  id         String    @id @default(uuid()) @db.Uuid
+  city       String
+  locality   String
+  state      String
+  country    String    @default("India")
+  postalCode String?
+  latitude   Decimal?  @db.Decimal(10, 7)
+  longitude  Decimal?  @db.Decimal(10, 7)
+  projects   Project[]
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@unique([city, locality])
+  @@index([city])
+  @@index([locality])
+}
+
+model Project {
+  communications WhatsAppConversation[]
+  id                 String                 @id @default(uuid()) @db.Uuid
+  legacyId           String?                @unique
+  name               String
+  slug               String                 @unique
+  shortDescription   String
+  longDescription    String
+  propertyType       PropertyType
+  status             ProjectStatus          @default(UNDER_CONSTRUCTION)
+  featured           Boolean                @default(false)
+  sortOrder          Int                    @default(0)
+  launchDate         DateTime?              @db.Date
+  possessionDate     DateTime?              @db.Date
+  reraReadyReference String?
+  currency           String                 @default("INR")
+  deletedAt          DateTime?
+  developerId        String                 @db.Uuid
+  developer          Developer              @relation(fields: [developerId], references: [id])
+  locationId         String                 @db.Uuid
+  location           Location               @relation(fields: [locationId], references: [id])
+  media              ProjectMedia[]
+  towers             Tower[]
+  unitTypes          UnitType[]
+  units              Unit[]
+  amenities          ProjectAmenity[]
+  nearbyPlaces       ProjectNearbyPlace[]
+  statusHistory      ProjectStatusHistory[]
+  leads              Lead[]
+  visits             SiteVisit[]
+  enquiries          Enquiry[]
+  brochureDownloads  BrochureDownload[]
+  events             UserEvent[]
+  views              PropertyView[]
+  favorites          FavoriteReady[]
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  @@index([status, featured, sortOrder])
+  @@index([developerId])
+  @@index([locationId])
+  @@index([possessionDate])
+}
+
+model ProjectMedia {
+  id        String     @id @default(uuid()) @db.Uuid
+  projectId String     @db.Uuid
+  project   Project    @relation(fields: [projectId], references: [id])
+  url       String
+  type      MediaType
+  alt       String
+  sortOrder Int        @default(0)
+  metadata  Json?
+  unitTypes UnitType[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([projectId, type, sortOrder])
+}
+
+model Tower {
+  id          String   @id @default(uuid()) @db.Uuid
+  projectId   String   @db.Uuid
+  project     Project  @relation(fields: [projectId], references: [id])
+  name        String
+  code        String
+  totalFloors Int
+  description String
+  status      String   @default("ACTIVE")
+  sortOrder   Int      @default(0)
+  floors      Floor[]
+  units       Unit[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, code])
+  @@unique([id, projectId])
+}
+
+model Floor {
+  id          String   @id @default(uuid()) @db.Uuid
+  towerId     String   @db.Uuid
+  tower       Tower    @relation(fields: [towerId], references: [id])
+  floorNumber Int
+  label       String
+  status      String   @default("ACTIVE")
+  units       Unit[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([towerId, floorNumber])
+  @@unique([id, towerId])
+}
+
+model UnitType {
+  id               String        @id @default(uuid()) @db.Uuid
+  projectId        String        @db.Uuid
+  project          Project       @relation(fields: [projectId], references: [id])
+  name             String
+  bedrooms         Decimal       @db.Decimal(3, 1)
+  bathrooms        Int
+  balconies        Int
+  minArea          Int
+  maxArea          Int
+  description      String
+  floorPlanMediaId String?       @db.Uuid
+  floorPlanMedia   ProjectMedia? @relation(fields: [floorPlanMediaId], references: [id])
+  units            Unit[]
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@unique([projectId, name])
+  @@unique([id, projectId])
+  @@index([bedrooms])
+}
+
+model Unit {
+  communications WhatsAppConversation[]
+  version Int @default(0)
+
+  id              String              @id @default(uuid()) @db.Uuid
+  projectId       String              @db.Uuid
+  project         Project             @relation(fields: [projectId], references: [id])
+  towerId         String              @db.Uuid
+  tower           Tower               @relation(fields: [towerId, projectId], references: [id, projectId])
+  floorId         String              @db.Uuid
+  floor           Floor               @relation(fields: [floorId, towerId], references: [id, towerId])
+  unitTypeId      String              @db.Uuid
+  unitType        UnitType            @relation(fields: [unitTypeId, projectId], references: [id, projectId])
+  unitNumber      String
+  orientation     String
+  builtUpAreaSqft Int
+  carpetAreaSqft  Int
+  basePrice       Decimal             @db.Decimal(14, 2)
+  currentPrice    Decimal             @db.Decimal(14, 2)
+  availability    UnitAvailability    @default(AVAILABLE)
+  featured        Boolean             @default(false)
+  priceHistory    UnitPriceHistory[]
+  statusHistory   UnitStatusHistory[]
+  leads           Lead[]
+  visits          SiteVisit[]
+  events          UserEvent[]
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  @@unique([towerId, unitNumber])
+  @@index([projectId, availability, currentPrice])
+  @@index([currentPrice])
+  @@index([builtUpAreaSqft])
+  @@index([unitTypeId])
+}
+
+model UnitPriceHistory {
+  actorReference String?
+
+  id            String   @id @default(uuid()) @db.Uuid
+  unitId        String   @db.Uuid
+  unit          Unit     @relation(fields: [unitId], references: [id])
+  oldPrice      Decimal? @db.Decimal(14, 2)
+  newPrice      Decimal  @db.Decimal(14, 2)
+  changeReason  String
+  effectiveFrom DateTime @default(now())
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([unitId, effectiveFrom])
+}
+
+model UnitStatusHistory {
+  actorReference String?
+
+  id        String            @id @default(uuid()) @db.Uuid
+  unitId    String            @db.Uuid
+  unit      Unit              @relation(fields: [unitId], references: [id])
+  oldStatus UnitAvailability?
+  newStatus UnitAvailability
+  note      String?
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  @@index([unitId, createdAt])
+}
+
+model ProjectStatusHistory {
+  id        String         @id @default(uuid()) @db.Uuid
+  projectId String         @db.Uuid
+  project   Project        @relation(fields: [projectId], references: [id])
+  oldStatus ProjectStatus?
+  newStatus ProjectStatus
+  note      String?
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  @@index([projectId, createdAt])
+}
+
+model Amenity {
+  id        String           @id @default(uuid()) @db.Uuid
+  name      String           @unique
+  slug      String           @unique
+  icon      String?
+  category  String
+  projects  ProjectAmenity[]
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+}
+
+model ProjectAmenity {
+  id          String   @id @default(uuid()) @db.Uuid
+  projectId   String   @db.Uuid
+  project     Project  @relation(fields: [projectId], references: [id])
+  amenityId   String   @db.Uuid
+  amenity     Amenity  @relation(fields: [amenityId], references: [id])
+  description String?
+  icon        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, amenityId])
+}
+
+model NearbyPlace {
+  id        String               @id @default(uuid()) @db.Uuid
+  name      String
+  category  NearbyCategory
+  latitude  Decimal?             @db.Decimal(10, 7)
+  longitude Decimal?             @db.Decimal(10, 7)
+  projects  ProjectNearbyPlace[]
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+}
+
+model ProjectNearbyPlace {
+  id                     String      @id @default(uuid()) @db.Uuid
+  projectId              String      @db.Uuid
+  project                Project     @relation(fields: [projectId], references: [id])
+  nearbyPlaceId          String      @db.Uuid
+  nearbyPlace            NearbyPlace @relation(fields: [nearbyPlaceId], references: [id])
+  distanceKm             Decimal     @db.Decimal(6, 2)
+  estimatedTravelMinutes Int?
+  isIllustrative         Boolean     @default(true)
+  createdAt              DateTime    @default(now()) @map("created_at")
+  updatedAt              DateTime    @updatedAt @map("updated_at")
+
+  @@unique([projectId, nearbyPlaceId])
+}
+
+model Agent {
+  communications WhatsAppConversation[]
+  whatsappMessages WhatsAppMessage[]
+  customerId    String?    @unique @db.Uuid
+  customer      Customer?  @relation(fields: [customerId], references: [id])
+  role          StaffRole  @default(VIEWER)
+  version       Int        @default(0)
+  lastActiveAt  DateTime?
+  followUps     FollowUp[]
+  authoredNotes LeadNote[]
+
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  active    Boolean  @default(true)
+  leads     Lead[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Customer {
+  whatsappContacts WhatsAppContact[]
+  staff     Agent[]
+  followUps FollowUp[]
+
+  id              String                @id @default(uuid()) @db.Uuid
+  name            String
+  email           String?               @unique
+  phone           String?
+  deletedAt       DateTime?
+  emailVerified   Boolean               @default(false)
+  image           String?
+  termsAcceptedAt DateTime?
+  sessions        AuthSession[]
+  accounts        AuthAccount[]
+  visits          SiteVisit[]
+  enquiries       Enquiry[]
+  requirements    CustomerRequirement[]
+  leads           Lead[]
+  favorites       FavoriteReady[]
+  savedSearches   SavedSearchReady[]
+  notifications   NotificationReady[]
+  aiConversations AiConversationReady[]
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+}
+
+model CustomerRequirement {
+  id         String   @id @default(uuid()) @db.Uuid
+  customerId String   @db.Uuid
+  customer   Customer @relation(fields: [customerId], references: [id])
+  city       String?
+  budgetMin  Decimal? @db.Decimal(14, 2)
+  budgetMax  Decimal? @db.Decimal(14, 2)
+  bedrooms   Decimal? @db.Decimal(3, 1)
+  filters    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+}
+
+model LeadSource {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  label     String
+  leads     Lead[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model TrafficSource {
+  id                String             @id @default(uuid()) @db.Uuid
+  code              String             @unique
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  events            UserEvent[]
+  brochureDownloads BrochureDownload[]
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+}
+
+model Lead {
+  communications WhatsAppConversation[]
+  priority  LeadPriority @default(MEDIUM)
+  version   Int          @default(0)
+  followUps FollowUp[]
+
+  id                String              @id @default(uuid()) @db.Uuid
+  name              String
+  email             String
+  phone             String
+  status            LeadStatus          @default(NEW)
+  budgetMin         Decimal?            @db.Decimal(14, 2)
+  budgetMax         Decimal?            @db.Decimal(14, 2)
+  preferredLocation String?
+  notes             String?
+  deletedAt         DateTime?
+  projectId         String              @db.Uuid
+  project           Project             @relation(fields: [projectId], references: [id])
+  unitId            String?             @db.Uuid
+  unit              Unit?               @relation(fields: [unitId], references: [id])
+  sourceId          String              @db.Uuid
+  source            LeadSource          @relation(fields: [sourceId], references: [id])
+  customerId        String?             @db.Uuid
+  customer          Customer?           @relation(fields: [customerId], references: [id])
+  agentId           String?             @db.Uuid
+  agent             Agent?              @relation(fields: [agentId], references: [id])
+  statusHistory     LeadStatusHistory[]
+  leadNotes         LeadNote[]
+  visits            SiteVisit[]
+  enquiries         Enquiry[]
+  brochureDownloads BrochureDownload[]
+  conversions       ConversionEvent[]
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  @@index([agentId, status])
+  @@index([projectId, email, createdAt])
+  @@index([projectId, phone, createdAt])
+  @@index([status, createdAt])
+}
+
+model LeadStatusHistory {
+  actorReference String?
+
+  id        String      @id @default(uuid()) @db.Uuid
+  leadId    String      @db.Uuid
+  lead      Lead        @relation(fields: [leadId], references: [id])
+  oldStatus LeadStatus?
+  newStatus LeadStatus
+  note      String?
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  @@index([leadId, createdAt])
+}
+
+model LeadNote {
+  authorId String? @db.Uuid
+  author   Agent?  @relation(fields: [authorId], references: [id])
+
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @db.Uuid
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model SiteVisit {
+  communications WhatsAppConversation[]
+  version       Int       @default(0)
+  scheduledDate DateTime? @db.Date
+  scheduledTime String?
+
+  customerId     String?                  @db.Uuid
+  customer       Customer?                @relation(fields: [customerId], references: [id])
+  reference      String?                  @unique
+  id             String                   @id @default(uuid()) @db.Uuid
+  idempotencyKey String                   @unique @db.Uuid
+  payloadHash    String
+  leadId         String                   @db.Uuid
+  lead           Lead                     @relation(fields: [leadId], references: [id])
+  projectId      String                   @db.Uuid
+  project        Project                  @relation(fields: [projectId], references: [id])
+  unitId         String?                  @db.Uuid
+  unit           Unit?                    @relation(fields: [unitId], references: [id])
+  name           String
+  email          String
+  phone          String
+  preferredDate  DateTime                 @db.Date
+  preferredTime  String
+  guestCount     Int                      @default(1)
+  message        String?
+  status         VisitStatus              @default(REQUESTED)
+  statusHistory  SiteVisitStatusHistory[]
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+
+  @@index([customerId, createdAt])
+  @@index([projectId, preferredDate])
+  @@index([leadId])
+}
+
+model SiteVisitStatusHistory {
+  previousDate  DateTime? @db.Date
+  previousTime  String?
+  scheduledDate DateTime? @db.Date
+  scheduledTime String?
+
+  actorReference String?
+
+  id          String       @id @default(uuid()) @db.Uuid
+  siteVisitId String       @db.Uuid
+  siteVisit   SiteVisit    @relation(fields: [siteVisitId], references: [id])
+  oldStatus   VisitStatus?
+  newStatus   VisitStatus
+  note        String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+}
+
+model Enquiry {
+  communications WhatsAppConversation[]
+  status        EnquiryStatus          @default(NEW)
+  version       Int                    @default(0)
+  statusHistory EnquiryStatusHistory[]
+
+  customerId     String?   @db.Uuid
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  reference      String?   @unique
+  id             String    @id @default(uuid()) @db.Uuid
+  idempotencyKey String    @unique @db.Uuid
+  payloadHash    String
+  leadId         String    @db.Uuid
+  lead           Lead      @relation(fields: [leadId], references: [id])
+  projectId      String    @db.Uuid
+  project        Project   @relation(fields: [projectId], references: [id])
+  name           String
+  email          String
+  phone          String
+  message        String
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([customerId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([leadId])
+}
+
+model BrochureDownload {
+  id              String         @id @default(uuid()) @db.Uuid
+  projectId       String         @db.Uuid
+  project         Project        @relation(fields: [projectId], references: [id])
+  leadId          String?        @db.Uuid
+  lead            Lead?          @relation(fields: [leadId], references: [id])
+  trafficSourceId String?        @db.Uuid
+  trafficSource   TrafficSource? @relation(fields: [trafficSourceId], references: [id])
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@index([projectId, createdAt])
+}
+
+model UserEvent {
+  id              String           @id @default(uuid()) @db.Uuid
+  eventKey        String           @unique @db.Uuid
+  kind            EventKind
+  projectId       String?          @db.Uuid
+  project         Project?         @relation(fields: [projectId], references: [id])
+  unitId          String?          @db.Uuid
+  unit            Unit?            @relation(fields: [unitId], references: [id])
+  trafficSourceId String?          @db.Uuid
+  trafficSource   TrafficSource?   @relation(fields: [trafficSourceId], references: [id])
+  metadata        Json?
+  view            PropertyView?
+  conversion      ConversionEvent?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@index([kind, createdAt])
+  @@index([projectId, createdAt])
+}
+
+model PropertyView {
+  id        String    @id @default(uuid()) @db.Uuid
+  eventId   String    @unique @db.Uuid
+  event     UserEvent @relation(fields: [eventId], references: [id])
+  projectId String    @db.Uuid
+  project   Project   @relation(fields: [projectId], references: [id])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId, createdAt])
+}
+
+model ConversionEvent {
+  id        String    @id @default(uuid()) @db.Uuid
+  eventId   String    @unique @db.Uuid
+  event     UserEvent @relation(fields: [eventId], references: [id])
+  leadId    String    @db.Uuid
+  lead      Lead      @relation(fields: [leadId], references: [id])
+  kind      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+}
+
+model FavoriteReady {
+  id         String   @id @default(uuid()) @db.Uuid
+  customerId String   @db.Uuid
+  customer   Customer @relation(fields: [customerId], references: [id])
+  projectId  String   @db.Uuid
+  project    Project  @relation(fields: [projectId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([customerId, projectId])
+}
+
+model SavedSearchReady {
+  id         String   @id @default(uuid()) @db.Uuid
+  customerId String   @db.Uuid
+  customer   Customer @relation(fields: [customerId], references: [id])
+  name       String
+  filters    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+}
+
+model NotificationReady {
+  id         String    @id @default(uuid()) @db.Uuid
+  customerId String    @db.Uuid
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  kind       String
+  payload    Json
+  readAt     DateTime?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+}
+
+model AuditLogReady {
+  id             String   @id @default(uuid()) @db.Uuid
+  actorReference String?
+  action         String
+  entityType     String
+  entityId       String
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([entityType, entityId])
+}
+
+model AiConversationReady {
+  id         String           @id @default(uuid()) @db.Uuid
+  guestHash  String?
+  title      String           @default("A new conversation")
+  preferences Json?
+  deletedAt  DateTime?
+  busyUntil  DateTime?
+  turnCount  Int              @default(0)
+  customerId String?          @db.Uuid
+  customer   Customer?        @relation(fields: [customerId], references: [id])
+  messages   AiMessageReady[]
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@index([customerId, updatedAt])
+  @@index([guestHash, updatedAt])
+}
+
+model AiMessageReady {
+  id             String              @id @default(uuid()) @db.Uuid
+  conversationId String              @db.Uuid
+  conversation   AiConversationReady @relation(fields: [conversationId], references: [id])
+  role           String
+  content        String
+  references     Json?
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  @@index([conversationId, createdAt])
+}
+
+model AiUsageWindow {
+  principal String @id
+  startedAt DateTime @default(now())
+  count Int @default(0)
+}
+
+model AuthSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  userId    String   @db.Uuid
+  user      Customer @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthAccount {
+  id                    String    @id @default(uuid()) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  user                  Customer  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model AuthVerification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+}
+
+model AuthRateLimit {
+  id          String @id @default(uuid()) @db.Uuid
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
+enum StaffRole {
+  SUPER_ADMIN
+  ADMIN
+  SALES_MANAGER
+  SALES_AGENT
+  VIEWER
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum EnquiryStatus {
+  NEW
+  IN_REVIEW
+  CONTACTED
+  CLOSED
+}
+
+enum FollowUpStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model FollowUp {
+  id          String         @id @default(uuid()) @db.Uuid
+  title       String
+  leadId      String         @db.Uuid
+  lead        Lead           @relation(fields: [leadId], references: [id])
+  customerId  String?        @db.Uuid
+  customer    Customer?      @relation(fields: [customerId], references: [id])
+  agentId     String         @db.Uuid
+  agent       Agent          @relation(fields: [agentId], references: [id])
+  dueAt       DateTime
+  status      FollowUpStatus @default(PENDING)
+  notes       String?
+  completedAt DateTime?
+  version     Int            @default(0)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@index([agentId, status, dueAt])
+  @@index([leadId, dueAt])
+}
+
+model EnquiryStatusHistory {
+  id             String         @id @default(uuid()) @db.Uuid
+  enquiryId      String         @db.Uuid
+  enquiry        Enquiry        @relation(fields: [enquiryId], references: [id])
+  oldStatus      EnquiryStatus?
+  newStatus      EnquiryStatus
+  actorReference String?
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  @@index([enquiryId, createdAt])
+}
+
+enum CommunicationMode {
+  AI_ASSISTED
+  HUMAN
+  PAUSED
+}
+enum WhatsAppConsent {
+  UNKNOWN
+  OPTED_IN
+  OPTED_OUT
+}
+enum WhatsAppDirection {
+  INBOUND
+  OUTBOUND
+}
+enum WhatsAppStatus {
+  RECEIVED
+  QUEUED
+  SUBMITTING
+  ACCEPTED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  UNCERTAIN
+}
+model WhatsAppContact {
+  id String @id @default(uuid()) @db.Uuid
+  phone String @unique
+  displayName String?
+  customerId String? @db.Uuid
+  customer Customer? @relation(fields: [customerId], references: [id])
+  consent WhatsAppConsent @default(UNKNOWN)
+  consentAt DateTime?
+  consentSource String?
+  threads WhatsAppConversation[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model WhatsAppConversation {
+  id String @id @default(uuid()) @db.Uuid
+  contactId String @db.Uuid
+  contact WhatsAppContact @relation(fields: [contactId], references: [id])
+  phoneNumberId String
+  mode CommunicationMode @default(HUMAN)
+  agentId String? @db.Uuid
+  agent Agent? @relation(fields: [agentId], references: [id])
+  leadId String? @db.Uuid
+  lead Lead? @relation(fields: [leadId], references: [id])
+  enquiryId String? @db.Uuid
+  enquiry Enquiry? @relation(fields: [enquiryId], references: [id])
+  visitId String? @db.Uuid
+  visit SiteVisit? @relation(fields: [visitId], references: [id])
+  projectId String? @db.Uuid
+  project Project? @relation(fields: [projectId], references: [id])
+  unitId String? @db.Uuid
+  unit Unit? @relation(fields: [unitId], references: [id])
+  unreadCount Int @default(0)
+  lastInboundAt DateTime?
+  lastActivityAt DateTime @default(now())
+  handoffAt DateTime?
+  version Int @default(0)
+  preferences Json?
+  aiDraft String?
+  aiReferences Json?
+  aiLeaseUntil DateTime?
+  messages WhatsAppMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([contactId, phoneNumberId])
+  @@index([agentId, lastActivityAt])
+  @@index([mode, lastActivityAt])
+  @@index([leadId])
+}
+model WhatsAppMessage {
+  id String @id @default(uuid()) @db.Uuid
+  conversationId String @db.Uuid
+  conversation WhatsAppConversation @relation(fields: [conversationId], references: [id])
+  providerMessageId String? @unique
+  idempotencyKey String? @unique @db.Uuid
+  payloadHash String?
+  direction WhatsAppDirection
+  type String
+  status WhatsAppStatus
+  body String?
+  templateName String?
+  templateLanguage String?
+  templateParameters Json?
+  sender String
+  recipient String
+  staffId String? @db.Uuid
+  staff Agent? @relation(fields: [staffId], references: [id])
+  errorCode String?
+  attempts Int @default(0)
+  providerAt DateTime?
+  history WhatsAppStatusHistory[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([conversationId, createdAt])
+  @@index([status, createdAt])
+}
+model WhatsAppStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+  messageId String @db.Uuid
+  message WhatsAppMessage @relation(fields: [messageId], references: [id])
+  status WhatsAppStatus
+  eventKey String @unique
+  occurredAt DateTime
+  createdAt DateTime @default(now())
+  @@index([messageId, occurredAt])
+}
+model WhatsAppWebhookEvent {
+  id String @id
+  providerMessageId String
+  phoneNumberId String
+  recipient String?
+  callbackId String? @db.Uuid
+  kind String
+  status WhatsAppStatus?
+  occurredAt DateTime
+  applied Boolean @default(false)
+  errorCode String?
+  createdAt DateTime @default(now())
+  @@index([providerMessageId, applied])
+}
+model WhatsAppTemplate {
+  id String @id
+  name String
+  language String
+  category String
+  status String
+  body String
+  parameterCount Int
+  supported Boolean @default(false)
+  syncedAt DateTime @default(now())
+  @@unique([name, language])
+}

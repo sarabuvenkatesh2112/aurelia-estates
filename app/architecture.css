@@ -1,0 +1,576 @@
+/* Phase 3 architectural film: a single progress drives the media masks. */
+.architecture-journey {
+  position: relative;
+  background: #e9e5db;
+  isolation: isolate;
+  --entry-mask: 0%;
+  --exit-mask: 100%;
+  --exit-inset: 0%;
+  --journey-progress: 0;
+}
+.architecture-viewport {
+  height: 100svh;
+  min-height: 680px;
+  position: relative;
+  overflow: hidden;
+  background: #e9e5db;
+  color: #282d24;
+}
+.scene-media,
+.scene-fallback,
+.scene-canvas,
+.scene-hero-bridge,
+.scene-exit-bridge,
+.scene-vignette {
+  position: absolute;
+  inset: 0;
+}
+.scene-media {
+  clip-path: inset(0 var(--exit-inset));
+  background: radial-gradient(ellipse at 70% 35%, #f5f0e4, #b8b9aa);
+}
+.scene-fallback img {
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+.scene-canvas {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.architecture-journey[data-ready] .scene-canvas {
+  opacity: 1;
+}
+.architecture-journey[data-ready] .scene-fallback {
+  opacity: 0;
+  transition: opacity 1.2s ease 0.1s;
+}
+.scene-hero-bridge {
+  clip-path: inset(0 0 var(--entry-mask) 0);
+  pointer-events: none;
+}
+.scene-hero-bridge img {
+  object-fit: cover;
+  object-position: 50% 60%;
+  transform: scale(1.045);
+}
+.scene-exit-bridge {
+  clip-path: inset(var(--exit-mask) 0 0 0);
+  pointer-events: none;
+}
+.scene-exit-bridge img {
+  object-fit: cover;
+  object-position: 50% 55%;
+}
+.scene-vignette {
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(237, 234, 224, 0.94),
+      rgba(237, 234, 224, 0.5) 27%,
+      transparent 56%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(236, 233, 223, 0.9),
+      transparent 19%,
+      transparent 85%,
+      rgba(236, 233, 223, 0.4)
+    );
+}
+.architecture-topline {
+  position: absolute;
+  top: 110px;
+  left: 5.5%;
+  right: 5.5%;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+}
+.architecture-topline a {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.scene-copy {
+  position: absolute;
+  left: 5.5%;
+  top: 27%;
+  width: min(37%, 490px);
+}
+.scene-copy > .eyebrow {
+  margin-bottom: 24px;
+  color: #756643;
+  font-size: 10px;
+}
+.scene-copy h2 {
+  font-size: clamp(42px, 4.6vw, 76px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  font-weight: 400;
+  font-family: var(--font-serif, Georgia, serif);
+}
+.scene-description {
+  font-size: 14px;
+  line-height: 1.8;
+  max-width: 340px;
+  margin-top: 28px;
+  color: #66695d;
+}
+.scene-floor-panel {
+  margin-top: 26px;
+  padding-top: 17px;
+  border-top: 1px solid #a9aa9766;
+  max-width: 340px;
+}
+.floor-tabs {
+  display: flex;
+  gap: 8px;
+}
+.floor-tabs button {
+  border: 1px solid #9a9c8b;
+  padding: 9px 17px;
+  font-size: 12px;
+}
+.floor-tabs button[aria-pressed='true'] {
+  background: #303a2b;
+  color: #f5f2e9;
+  border-color: #303a2b;
+}
+.scene-floor-panel p {
+  margin: 16px 0 6px;
+}
+.scene-floor-panel strong {
+  display: block;
+  font-size: 24px;
+  font-weight: 400;
+  font-family: Georgia, serif;
+}
+.scene-floor-panel p span {
+  font-size: 12px;
+  display: block;
+  margin-top: 7px;
+}
+.scene-floor-panel small {
+  font-size: 10px;
+  color: #77796b;
+}
+.architecture-bottom {
+  position: absolute;
+  bottom: 26px;
+  left: 5.5%;
+  right: 5.5%;
+}
+.architecture-bottom nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.architecture-bottom nav button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  color: #777b6d;
+  padding: 14px 0;
+}
+.architecture-bottom nav button[aria-current] {
+  color: #363e2d;
+}
+.architecture-bottom nav span {
+  font-size: 10px;
+  color: #978455;
+}
+.architecture-bottom nav i {
+  font-style: normal;
+}
+.architecture-progress {
+  height: 1px;
+  background: #72765c33;
+  margin: 8px 0 17px;
+}
+.architecture-progress i {
+  display: block;
+  height: 1px;
+  background: #8e7950;
+  transform: scaleX(var(--journey-progress));
+  transform-origin: left;
+}
+.architecture-bottom > p {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #818270;
+}
+.scene-loader {
+  position: absolute;
+  right: 12%;
+  top: 48%;
+  width: 220px;
+  text-align: center;
+  background: #ebe8decc;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+.scene-loader > span {
+  font-family: Georgia, serif;
+  font-size: 23px;
+  letter-spacing: 0.18em;
+}
+.scene-loader p {
+  font-size: 11px;
+  margin: 12px 0 20px;
+}
+.scene-loader progress {
+  height: 1px;
+  background: #9a9d8866;
+}
+.scene-loader i {
+  display: block;
+  height: 1px;
+  background: #9b8554;
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+.scene-details {
+  position: absolute;
+  right: 5.5%;
+  bottom: 150px;
+  max-width: 290px;
+}
+.scene-detail-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.scene-detail-links button {
+  padding: 7px 10px;
+  background: #eeebdfdd;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.scene-detail-panel {
+  position: relative;
+  background: #f4f1e7f5;
+  padding: 25px;
+  margin-top: 12px;
+  box-shadow: 0 8px 30px #20291b0d;
+}
+.scene-detail-panel > button {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+.scene-detail-panel h3 {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  margin: 16px 0;
+}
+.scene-detail-panel p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.scene-detail-panel .eyebrow {
+  font-size: 9px;
+}
+.scene-marker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  background: #f3efdfdc;
+  padding: 8px 11px;
+  color: #394333;
+  font-size: 10px;
+  line-height: 1.2;
+  border: 1px solid #87917b44;
+}
+.scene-marker i {
+  height: 1px;
+  width: 25px;
+  background: #a39164;
+}
+.scene-marker span:first-child {
+  color: #927e4e;
+}
+.architecture-journey button:focus-visible,
+.architecture-journey a:focus-visible {
+  outline: 2px solid #887346;
+  outline-offset: 5px;
+}
+.architecture-journey[data-static] .scene-hero-bridge {
+  display: none;
+}
+@media (max-width: 1099px) {
+  .scene-copy {
+    width: 42%;
+  }
+  .scene-copy h2 {
+    font-size: 46px;
+  }
+  .scene-description {
+    font-size: 13px;
+  }
+  .scene-details {
+    right: 4%;
+  }
+  .scene-marker {
+    font-size: 9px;
+    padding: 6px;
+  }
+  .scene-marker i {
+    width: 12px;
+  }
+}
+@media (max-width: 999px), (max-height: 649px) {
+  .architecture-journey {
+    height: 240svh;
+  }
+  .architecture-viewport {
+    position: sticky;
+    top: 0;
+    min-height: 600px;
+  }
+  .architecture-topline {
+    top: 94px;
+  }
+  .architecture-bottom nav i {
+    display: none;
+  }
+  .architecture-bottom nav button {
+    padding: 12px;
+  }
+  .scene-copy h2 {
+    font-size: 40px;
+  }
+}
+@media (max-width: 767px) {
+  .architecture-journey {
+    height: 210svh;
+  }
+  .architecture-viewport {
+    min-height: 650px;
+  }
+  .architecture-topline {
+    top: 90px;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+  .architecture-topline a {
+    font-size: 10px;
+    max-width: 100px;
+  }
+  .scene-copy {
+    top: 130px;
+    left: 7%;
+    width: 86%;
+    pointer-events: none;
+  }
+  .scene-copy > .eyebrow {
+    margin-bottom: 13px;
+    font-size: 9px;
+  }
+  .scene-copy h2 {
+    font-size: 36px;
+    max-width: 310px;
+    line-height: 1.03;
+  }
+  .scene-description {
+    font-size: 12px;
+    max-width: 275px;
+    margin-top: 15px;
+    line-height: 1.6;
+  }
+  .scene-media {
+    top: 25%;
+    bottom: 8%;
+  }
+  .scene-vignette {
+    background: linear-gradient(
+      180deg,
+      #e9e5db 12%,
+      #e9e5dbcc 32%,
+      transparent 56%,
+      #e9e5db22 80%,
+      #e9e5db
+    );
+  }
+  .scene-floor-panel {
+    pointer-events: auto;
+    background: #ede9dfeb;
+    max-width: 280px;
+    margin-top: 16px;
+    padding: 12px;
+  }
+  .scene-floor-panel p {
+    margin-top: 10px;
+  }
+  .scene-floor-panel strong {
+    font-size: 20px;
+  }
+  .scene-floor-panel p span {
+    font-size: 11px;
+  }
+  .floor-tabs button {
+    padding: 7px 13px;
+  }
+  .scene-floor-panel small {
+    font-size: 9px;
+  }
+  .scene-details {
+    right: 7%;
+    bottom: 120px;
+    max-width: 250px;
+    z-index: 12;
+  }
+  .scene-detail-links {
+    gap: 5px;
+  }
+  .scene-detail-links button {
+    font-size: 10px;
+  }
+  .scene-detail-panel {
+    padding: 20px;
+  }
+  .scene-detail-panel h3 {
+    font-size: 23px;
+  }
+  .scene-detail-panel p {
+    font-size: 11px;
+  }
+  .scene-marker {
+    display: none;
+  }
+  .architecture-bottom {
+    left: 7%;
+    right: 7%;
+    bottom: 21px;
+  }
+  .architecture-bottom > p {
+    font-size: 8px;
+    letter-spacing: 0.07em;
+  }
+  .architecture-bottom nav button {
+    padding: 10px 5px;
+  }
+  .scene-loader {
+    right: 15%;
+    top: 60%;
+    width: 70%;
+  }
+  .scene-fallback img {
+    object-fit: contain;
+    object-position: 65% 70%;
+    transform: scale(1.1);
+  }
+  .scene-hero-bridge {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .architecture-journey {
+    height: auto;
+  }
+  .architecture-viewport {
+    position: relative;
+    min-height: 900px;
+  }
+  .scene-canvas,
+  .scene-hero-bridge {
+    display: none;
+  }
+}
+html[data-reduced-motion] .architecture-journey {
+  height: auto;
+}
+html[data-reduced-motion] .architecture-viewport {
+  position: relative;
+  min-height: 900px;
+}
+html[data-reduced-motion] .scene-canvas,
+html[data-reduced-motion] .scene-hero-bridge {
+  display: none;
+}
+
+.scene-loader progress {
+  display: block;
+  width: 100%;
+  appearance: none;
+  border: 0;
+}
+.scene-loader progress::-webkit-progress-bar {
+  background: #9a9d8866;
+}
+.scene-loader progress::-webkit-progress-value {
+  background: #9b8554;
+  transition: width 0.4s;
+}
+/* The static mobile presentation uses normal document flow so every control
+   remains readable even when an architectural detail is expanded. */
+@media (max-width: 999px) {
+  .architecture-journey[data-static] {
+    height: auto;
+  }
+  .architecture-journey[data-static] .architecture-viewport {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: auto;
+    min-height: 0;
+  }
+  .architecture-journey[data-static] .scene-copy {
+    position: relative;
+    order: 1;
+    top: auto;
+    left: auto;
+    width: 86%;
+    margin: 140px 7% 0;
+    pointer-events: auto;
+  }
+  .architecture-journey[data-static] .scene-media {
+    position: relative;
+    order: 2;
+    inset: auto;
+    flex: none;
+    height: 420px;
+    width: 100%;
+    clip-path: none;
+  }
+  .architecture-journey[data-static] .scene-fallback img {
+    object-fit: contain;
+    object-position: 50% 50%;
+    transform: scale(1.4);
+  }
+  .architecture-journey[data-static] .scene-exit-bridge,
+  .architecture-journey[data-static] .scene-vignette {
+    display: none;
+  }
+  .architecture-journey[data-static] .scene-details {
+    position: relative;
+    order: 3;
+    inset: auto;
+    max-width: none;
+    margin: 0 7% 24px;
+  }
+  .architecture-journey[data-static] .scene-detail-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .architecture-journey[data-static] .scene-detail-panel {
+    margin-top: 18px;
+  }
+  .architecture-journey[data-static] .architecture-bottom {
+    position: relative;
+    order: 4;
+    inset: auto;
+    margin: 0 7% 24px;
+  }
+}

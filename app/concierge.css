@@ -1,0 +1,385 @@
+[data-slot='dialog-content'].experience-dialog.concierge-dialog {
+  left: auto;
+  right: 20px;
+  top: 20px;
+  transform: none;
+  translate: 0 0 !important;
+  z-index: 101;
+  width: min(580px, calc(100vw - 40px));
+  max-width: none;
+  height: calc(100dvh - 40px);
+  max-height: none !important;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f5f2eb;
+  color: #203c35;
+}
+.concierge-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.concierge-heading {
+  padding: 30px 48px 20px 28px;
+  background: #173b31;
+  color: #f5f2eb;
+}
+.concierge-heading .eyebrow {
+  font-size: 11px;
+  color: #cfb98a;
+  margin: 0 0 14px;
+  letter-spacing: 0.2em;
+}
+.concierge-heading h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 400;
+  margin: 0 0 10px;
+}
+.concierge-heading p:last-child {
+  color: #d6ded8;
+  font-size: 14px;
+}
+.concierge-dialog > [data-slot='dialog-close'] {
+  color: #173b31;
+  width: 44px;
+  height: 44px;
+}
+.concierge-toolbar {
+  display: flex;
+  padding: 6px 18px;
+  border-bottom: 1px solid #d8d7cc;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.concierge-shell button,
+.concierge-card-actions a {
+  min-height: 44px;
+  cursor: pointer;
+}
+.concierge-shell button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.concierge-shell button:focus-visible,
+.concierge-shell a:focus-visible,
+.concierge-shell input:focus-visible,
+.concierge-shell textarea:focus-visible {
+  outline: 2px solid #897244;
+  outline-offset: 3px;
+}
+.concierge-toolbar button {
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+}
+.concierge-toolbar button:nth-child(3) {
+  margin-left: auto;
+}
+.concierge-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 24px 28px;
+  scrollbar-width: thin;
+}
+.concierge-welcome {
+  padding: 8px 0 24px;
+}
+.concierge-monogram {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 48px;
+  border: 1px solid #b2a581;
+  font-family: Georgia, serif;
+  font-size: 30px;
+  margin-bottom: 18px;
+}
+.concierge-welcome h3 {
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+.concierge-welcome > p {
+  color: #59695f;
+  font-size: 16px;
+}
+.concierge-prompts {
+  display: grid;
+  margin-top: 24px;
+  gap: 8px;
+}
+.concierge-prompts button {
+  text-align: left;
+  border: 1px solid #d4d6c9;
+  padding: 12px 14px;
+  background: #f9f8f3;
+}
+.concierge-message {
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+.concierge-message > span {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #667469;
+}
+.concierge-message > p {
+  white-space: pre-wrap;
+  font-size: 16px;
+  margin-top: 7px;
+}
+.concierge-message.user {
+  margin-left: 32px;
+  background: #e6e9de;
+  padding: 16px;
+}
+.concierge-residence {
+  border: 1px solid #cccdbc;
+  background: #fffdf8;
+  padding: 16px;
+  margin: 12px 0;
+}
+.concierge-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #627268;
+  font-size: 12px;
+}
+.concierge-residence h3 {
+  font-family: Georgia, serif;
+  font-size: 23px;
+  font-weight: 400;
+  margin: 8px 0;
+}
+.concierge-residence p {
+  margin: 6px 0;
+}
+.concierge-residence small {
+  font-size: 13px;
+  color: #627268;
+}
+.concierge-residence .concierge-match {
+  font-size: 12px;
+  color: #6d796d;
+}
+.concierge-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.concierge-card-actions button,
+.concierge-card-actions a,
+.concierge-save {
+  border: 1px solid #a5b1a1;
+  padding: 10px 12px;
+  display: inline-flex;
+  align-items: center;
+}
+.concierge-card-actions button:first-child {
+  background: #214c3e;
+  color: #fff;
+}
+.concierge-comparison {
+  overflow: auto;
+  margin: 12px 0;
+}
+.concierge-comparison table {
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 430px;
+}
+.concierge-comparison th,
+.concierge-comparison td {
+  padding: 12px;
+  border: 1px solid #cbcfc2;
+  text-align: left;
+  vertical-align: top;
+}
+.concierge-comparison caption {
+  text-align: left;
+  padding-bottom: 8px;
+}
+.concierge-context,
+.concierge-preferences {
+  font-size: 12px;
+  color: #546559;
+  background: #e9ecdf;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.concierge-preferences p {
+  overflow-wrap: anywhere;
+}
+.concierge-preferences button {
+  text-decoration: underline;
+}
+.concierge-composer {
+  margin: 10px 20px 0;
+  display: flex;
+  border: 1px solid #abb7a8;
+  background: #fffdf8;
+  flex-shrink: 0;
+}
+.concierge-composer textarea {
+  resize: none;
+  min-width: 0;
+  flex: 1;
+  background: transparent;
+  border: 0;
+  padding: 12px;
+  font: inherit;
+  font-size: 16px;
+  max-height: 120px;
+}
+.concierge-composer button {
+  width: 46px;
+  margin: 6px;
+  background: #214c3e;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.concierge-privacy {
+  margin: 10px 22px 16px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #607064;
+  flex-shrink: 0;
+}
+.concierge-error,
+.concierge-offline,
+.concierge-notice {
+  padding: 10px 20px;
+  background: #e9e4d6;
+  font-size: 13px;
+  flex-shrink: 0;
+  max-height: 100px;
+  overflow: auto;
+}
+.concierge-error {
+  color: #8d3325;
+}
+.concierge-offline a,
+.concierge-account-result a {
+  text-decoration: underline;
+}
+.concierge-history {
+  display: grid;
+  gap: 8px;
+}
+.concierge-history button {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #cdd1c3;
+}
+.concierge-history button span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.concierge-history small {
+  font-size: 12px;
+}
+.concierge-rename,
+.concierge-confirm {
+  padding: 12px 20px;
+  background: #e7e9df;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.concierge-rename input {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  padding: 8px;
+}
+.concierge-confirm p {
+  width: 100%;
+}
+.concierge-confirm button {
+  padding: 8px;
+  border: 1px solid #a6b29e;
+}
+.concierge-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 35;
+  background: #173b31;
+  color: #f4ecda;
+  border: 1px solid #a79570;
+  min-height: 48px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  box-shadow: 0 5px 22px #0002;
+}
+@media (max-width: 600px) {
+  [data-slot='dialog-content'].experience-dialog.concierge-dialog {
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+  .concierge-heading {
+    padding: 25px 50px 18px 20px;
+  }
+  .concierge-heading h2 {
+    font-size: 26px;
+  }
+  .concierge-scroll {
+    padding: 16px 18px;
+  }
+  .concierge-toolbar {
+    padding: 4px 8px;
+  }
+  .concierge-toolbar button {
+    padding: 8px;
+  }
+  .concierge-composer {
+    margin: 8px 14px 0;
+  }
+  .concierge-privacy {
+    margin: 8px 16px max(10px, env(safe-area-inset-bottom));
+  }
+  .concierge-launcher {
+    right: 14px;
+    bottom: 14px;
+  }
+  .concierge-residence {
+    padding: 12px;
+  }
+  .concierge-card-top {
+    font-size: 11px;
+  }
+  .concierge-welcome h3 {
+    font-size: 25px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .concierge-dialog {
+    animation: none !important;
+    transition: none !important;
+  }
+}

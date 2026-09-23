@@ -1,7 +1,13 @@
 'use client';
-import { preferredScrollBehavior } from '@/lib/scroll';
+import Link from 'next/link';
+
+import { useMotionPreference } from '@/components/animation/motion-preference';
+import { navigateToSection } from '@/lib/scroll';
+import { AnimatePresence, motion } from 'motion/react';
+import { useResidenceJourney } from '@/hooks/use-residence-journey';
+import { motionTokens } from '@/lib/motion/config';
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
+
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import {
@@ -12,9 +18,10 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { PropertyCard } from '@/components/property/property-card';
-import { properties } from '@/data/properties';
-import { emptyFilters, filterProperties } from '@/lib/discovery';
-import type { PropertyFilters } from '@/types/property';
+import { useExperience } from '@/components/layout/experience-provider';
+import { emitEvent } from '@/lib/events';
+const emptyFilters = { city: '', type: '', bedrooms: '', price: '' };
+import type { Property, PropertyFilters } from '@/types/property';
 function FilterSelect({
   label,
   value,
@@ -52,68 +59,68 @@ function FilterSelect({
   );
 }
 export function Residences() {
+  const { properties } = useExperience();
+  const [results, setResults] = useState<Property[]>([]);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
+  async function search(filters: PropertyFilters) {
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    setPending(true);
+    setError('');
+    const params = new URLSearchParams({ pageSize: '24' });
+    if (filters.city) params.set('city', filters.city);
+    if (filters.type) params.set('type', filters.type.toUpperCase());
+    if (filters.bedrooms) params.set('bhk', filters.bedrooms);
+    if (filters.price)
+      params.set('maxPrice', String(Number(filters.price) * 1e7));
+    try {
+      const response = await fetch(`/api/search?${params}`, {
+        signal: controller.signal,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setResults(data.properties);
+      setActive(filters);
+      setSearched(true);
+      setSearchInitiated(true);
+      emitEvent('SEARCH_PERFORMED', {
+        metadata: {
+          resultCount: data.total,
+          filterCount: Object.values(filters).filter(Boolean).length,
+        },
+      });
+    } catch (err) {
+      if (!controller.signal.aborted)
+        setError(err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      if (!controller.signal.aborted) setPending(false);
+    }
+  }
   const [draft, setDraft] = useState<PropertyFilters>(emptyFilters);
   const [active, setActive] = useState<PropertyFilters>(emptyFilters);
   const [searched, setSearched] = useState(false);
   const section = useRef<HTMLElement>(null);
   const rail = useRef<HTMLDivElement>(null);
-  const trigger = useRef<ScrollTrigger | null>(null);
-  const results = filterProperties(active);
-  const display = searched ? results : properties.slice(0, 4);
+  const journey = useResidenceJourney(section, rail, searched);
+  const { reduced } = useMotionPreference();
+  const [searchInitiated, setSearchInitiated] = useState(false);
+  const featured = properties.filter((p) => p.featured).slice(0, 4);
+  const display = searched ? results : featured;
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const mm = gsap.matchMedia();
-    mm.add(
-      '(min-width: 1000px) and (prefers-reduced-motion: no-preference)',
-      () => {
-        if (searched || !rail.current || !section.current) return;
-        const ctx = gsap.context(() => {
-          const distance = () =>
-            Math.max(0, rail.current!.scrollWidth - rail.current!.clientWidth);
-          const tween = gsap.to(rail.current, {
-            x: () => -distance(),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section.current,
-              start: 'top top+=70',
-              end: () => `+=${distance()}`,
-              pin: true,
-              scrub: 1,
-              invalidateOnRefresh: true,
-            },
-          });
-          trigger.current = tween.scrollTrigger || null;
-        }, section);
-        return () => {
-          ctx.revert();
-          trigger.current = null;
-        };
-      },
-    );
-    return () => mm.revert();
-  }, [searched]);
+    if (!searchInitiated) return;
+    const frame = requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+      navigateToSection('residences');
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, searched, searchInitiated]);
   const update = (key: keyof PropertyFilters) => (v: string) =>
     setDraft((prev) => ({ ...prev, [key]: v }));
-  const navigate = (direction: number) => {
-    const st = trigger.current;
-    if (st) {
-      window.scrollTo({
-        top: Math.min(
-          st.end,
-          Math.max(
-            st.start,
-            window.scrollY + direction * window.innerWidth * 0.5,
-          ),
-        ),
-        behavior: preferredScrollBehavior(),
-      });
-    } else {
-      rail.current?.scrollBy({
-        left: direction * 360,
-        behavior: preferredScrollBehavior(),
-      });
-    }
-  };
+
   return (
     <>
       <section id="discovery" className="discovery section-pad">
@@ -124,15 +131,7 @@ export function Residences() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setActive(draft);
-            setSearched(true);
-            setTimeout(
-              () =>
-                document
-                  .getElementById('residences')
-                  ?.scrollIntoView({ behavior: preferredScrollBehavior() }),
-              50,
-            );
+            void search(draft);
           }}
         >
           <FilterSelect
@@ -183,12 +182,17 @@ export function Residences() {
           <button
             className="search-button"
             type="submit"
+            disabled={pending}
             aria-label="Find a residence"
           >
             <Search size={18} />
-            <span>Find a residence</span>
+            <span>{pending ? 'Finding residences?' : 'Find a residence'}</span>
           </button>
         </form>
+        {error && <p role="alert">{error}</p>}
+        <Link prefetch={false} className="text-link" href="/residences">
+          Advanced search &amp; complete collection <ArrowRight size={16} />
+        </Link>
       </section>
       <section
         id="residences"
@@ -213,14 +217,17 @@ export function Residences() {
             <button
               className="text-link"
               onClick={() => {
-                setSearched(!searched);
-                setActive(emptyFilters);
+                setSearchInitiated(true);
+                if (searched) {
+                  setSearched(false);
+                  setActive(emptyFilters);
+                } else void search(emptyFilters);
                 setDraft(emptyFilters);
               }}
             >
               {searched
                 ? 'Back to selected residences'
-                : 'Explore all 8 residences'}{' '}
+                : `Explore all ${properties.length} residences`}{' '}
               <ArrowRight size={17} />
             </button>
           </div>
@@ -231,7 +238,7 @@ export function Residences() {
             in your selection{' '}
             <button
               onClick={() => {
-                setActive(emptyFilters);
+                void search(emptyFilters);
                 setDraft(emptyFilters);
               }}
             >
@@ -240,43 +247,93 @@ export function Residences() {
           </output>
         )}
         <div className="property-window">
-          <div
-            className="property-rail"
-            ref={rail}
-            onFocusCapture={(event) => {
-              const card = (event.target as HTMLElement).closest<HTMLElement>(
-                '.property-card',
-              );
-              const st = trigger.current;
-              if (
-                card &&
-                rail.current &&
-                st &&
-                event.target.matches(':focus-visible')
-              ) {
-                const index = Array.from(rail.current.children).indexOf(card);
-                window.scrollTo({
-                  top: Math.min(
-                    st.end,
-                    st.start + index * (card.offsetWidth + 32),
-                  ),
-                  behavior: 'instant',
-                });
-              }
-            }}
-          >
-            {display.map((p, i) => (
-              <PropertyCard key={p.id} property={p} index={i} />
-            ))}
-          </div>
+          {searched ? (
+            <motion.div
+              className="filtered-grid"
+              layout
+              onLayoutAnimationComplete={() => ScrollTrigger.refresh()}
+            >
+              <AnimatePresence mode="popLayout" initial={false}>
+                {display.map((p, i) => (
+                  <motion.div
+                    key={p.id}
+                    layout="position"
+                    initial={{
+                      opacity: 0,
+                      filter: reduced ? 'none' : 'blur(4px)',
+                    }}
+                    animate={{ opacity: 1, filter: 'blur(0px)' }}
+                    exit={{
+                      opacity: 0,
+                      transition: { duration: reduced ? 0 : 0.18 },
+                    }}
+                    transition={{
+                      duration: reduced ? 0 : 0.45,
+                      ease: motionTokens.curve,
+                    }}
+                  >
+                    <PropertyCard property={p} index={i} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <div
+              className="property-rail"
+              ref={rail}
+              data-cursor="Drag"
+              onFocusCapture={(event) => {
+                const card = (event.target as HTMLElement).closest(
+                  '.property-card',
+                );
+                if (
+                  card &&
+                  rail.current &&
+                  event.target.matches(':focus-visible')
+                )
+                  journey.go(
+                    Array.from(rail.current.children).indexOf(card),
+                    true,
+                  );
+              }}
+            >
+              {display.map((p, i) => (
+                <PropertyCard key={p.id} property={p} index={i} />
+              ))}
+            </div>
+          )}
         </div>
         {!display.length && (
           <div className="empty-results">
             <h3>A little more room to explore.</h3>
             <p>
-              No residences match these preferences. Adjust your search or clear
-              the filters.
+              {properties.length
+                ? 'No residences match these preferences. Adjust your search or clear the filters.'
+                : 'The collection is temporarily unavailable. Please try again shortly.'}
             </p>
+          </div>
+        )}
+        {!searched && (
+          <div className="journey-readout">
+            <span>
+              {String(journey.active + 1).padStart(2, '0')}{' '}
+              <small>/ {String(featured.length).padStart(2, '0')}</small>
+            </span>
+            <div className="journey-progress" aria-hidden="true">
+              <span />
+            </div>
+            <nav aria-label="Residence journey">
+              {featured.map((p, i) => (
+                <button
+                  key={p.id}
+                  aria-label={`Go to residence ${i + 1}: ${p.name}`}
+                  aria-current={journey.active === i ? 'step' : undefined}
+                  onClick={() => journey.go(i)}
+                >
+                  0{i + 1}
+                </button>
+              ))}
+            </nav>
           </div>
         )}
         <div className="collection-footer">
@@ -285,11 +342,16 @@ export function Residences() {
             <div>
               <button
                 aria-label="Previous residences"
-                onClick={() => navigate(-1)}
+                onClick={journey.previous}
+                disabled={journey.active === 0}
               >
                 <ArrowLeft size={18} />
               </button>
-              <button aria-label="Next residences" onClick={() => navigate(1)}>
+              <button
+                aria-label="Next residences"
+                onClick={journey.next}
+                disabled={journey.active === featured.length - 1}
+              >
                 <ArrowRight size={18} />
               </button>
             </div>

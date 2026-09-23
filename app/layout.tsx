@@ -1,5 +1,11 @@
+import './concierge.css';
+import { CustomerProvider } from '@/components/account/customer-context';
+import './account.css';
 import type { Metadata } from 'next';
 import './globals.css';
+import './motion.css';
+import './architecture.css';
+import './platform.css';
 export const metadata: Metadata = {
   title: 'Aurelia Estates — Exceptional residences. Extraordinary living.',
   description:
@@ -11,7 +17,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <CustomerProvider>{children}</CustomerProvider>
+      </body>
     </html>
   );
 }
