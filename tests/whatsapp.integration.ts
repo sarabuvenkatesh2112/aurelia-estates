@@ -21,7 +21,7 @@ const receipt=(wamid:string,status:string,callback?:string)=>({object:'whatsapp_
 const businessBefore={leads:await db.lead.count(),visits:await db.siteVisit.count(),enquiries:await db.enquiry.count()};
 if(process.env.PHASE8_RECHECK_OUTBOUND==='true'){
   const existingQa=JSON.parse(readFileSync('.cache/phase8-qa.json','utf8'));id=existingQa.id;phone=existingQa.phone;
-  await db.whatsAppConversation.update({where:{id},data:{mode:'HUMAN',lastInboundAt:new Date(),contact:{update:{consent:'OPTED_IN'}}}});
+  await db.whatsAppConversation.update({where:{id},data:{mode:'HUMAN',lastInboundAt:new Date(),aiDraft:null,contact:{update:{consent:'UNKNOWN'}}}});
 }
 try {
   for(const role of ['SUPER_ADMIN','ADMIN','SALES_MANAGER','SALES_AGENT','AGENT_B','VIEWER','CUSTOMER']){
@@ -93,7 +93,7 @@ try {
   });
   await test('official adapter contract and failure classification use mock transport only',async()=>{
     const c={token:'mock-only',phoneNumberId:'123',businessAccountId:'456',verifyToken:'mock',appSecret:'mock',version:'v25.0'};
-    const provider=new MetaCloudProvider(async(_url,init)=>{const body=JSON.parse(String(init?.body));assert.equal(body.messaging_product,'whatsapp');assert.equal(body.to,'919876543210');return Response.json({messages:[{id:'mock-wamid'}]});},c);
+    const provider=new MetaCloudProvider(async(_url,init)=>{const body=JSON.parse(init?.body instanceof Uint8Array?new TextDecoder().decode(init.body):(init?.body as string??''));assert.equal(body.messaging_product,'whatsapp');assert.equal(body.to,'919876543210');return Response.json({messages:[{id:'mock-wamid'}]});},c);
     assert.deepEqual(await provider.send({to:'+919876543210',correlationId:randomUUID(),text:'QA'}),{id:'mock-wamid'});
     const bad=new MetaCloudProvider(async()=>Response.json({error:{code:190,message:'private provider details'}},{status:401}),c);
     await assert.rejects(bad.send({to:'+919876543210',correlationId:randomUUID(),text:'QA'}),(e)=>e instanceof TransportError&&e.code==='META_190'&&!e.uncertain&&!e.message.includes('private'));

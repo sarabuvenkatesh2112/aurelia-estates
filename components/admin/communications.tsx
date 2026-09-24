@@ -588,7 +588,7 @@ export function Communications({
                         </Link>
                       )}
                     </div>
-                    {write && !!lead.id && <details><summary>Plan a private CRM follow-up</summary><form className="office-form" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const result=await command({action:'follow_up',title:f.get('title'),dueAt:String(f.get('dueAt'))+':00+05:30',...(f.get('notes')?{notes:f.get('notes')}:{})});if(result)setNotice('Follow-up saved in the existing CRM task list.');}}><label>Follow-up title<input name="title" required maxLength={160}/></label><label>Due date and time (IST)<input type="datetime-local" name="dueAt" required/></label><label>Private notes<textarea name="notes" maxLength={2000}/></label><button disabled={busy}>Save CRM follow-up</button></form></details>}
+                    {write && !!lead.id && <details><summary>Plan a private CRM follow-up</summary><form className="office-form" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const dueRaw=f.get('dueAt');const result=await command({action:'follow_up',title:f.get('title'),dueAt:(typeof dueRaw==='string'?dueRaw:'')+':00+05:30',...(f.get('notes')?{notes:f.get('notes')}:{})});if(result)setNotice('Follow-up saved in the existing CRM task list.');}}><label>Follow-up title<input name="title" required maxLength={160}/></label><label>Due date and time (IST)<input type="datetime-local" name="dueAt" required/></label><label>Private notes<textarea name="notes" maxLength={2000}/></label><button disabled={busy}>Save CRM follow-up</button></form></details>}
                     {write && (
                       <>
                         <label className="comm-label">
