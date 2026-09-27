@@ -42,15 +42,15 @@ export function Hero() {
       gsap.set(loader, { display: 'none' });
       return;
     }
-    let introFrame = 0;
     const intro = gsap.timeline({
       defaults: { ease: motionTokens.ease.reveal },
     });
     const header = document.querySelector('.site-header'),
       logo = document.querySelector<HTMLElement>('.site-header .wordmark');
     if (!played.current && window.scrollY < 80 && !window.location.hash) {
-      // Commit after React's development effect replay has completed.
-      introFrame = requestAnimationFrame(() => {
+      // A first frame may precede Strict Mode's cleanup/replay. Only a
+      // completed timeline counts as played; interrupted contexts may restart.
+      intro.eventCallback('onComplete', () => {
         played.current = true;
       });
       const word = select('.loader-word'),
@@ -204,7 +204,6 @@ export function Hero() {
     element.addEventListener('pointermove', move, { passive: true });
     element.addEventListener('pointerleave', reset);
     return () => {
-      cancelAnimationFrame(introFrame);
       element.removeEventListener('pointermove', move);
       element.removeEventListener('pointerleave', reset);
     };

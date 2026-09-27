@@ -2,9 +2,9 @@
 import { useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { storyScenes } from '@/data/editorial';
 import { useMotionScene } from '@/hooks/use-motion-scene';
+import { bindStorySteps } from '@/hooks/use-story-steps';
 import { motionTokens } from '@/lib/motion/config';
 import { scrollToPosition } from '@/lib/scroll';
 export function StoryVisual({
@@ -30,34 +30,15 @@ export function StoryVisual({
 }
 export function SignatureStory() {
   const root = useRef<HTMLElement>(null),
-    timeline = useRef<gsap.core.Timeline | null>(null),
+    steps = useRef<ReturnType<typeof bindStorySteps> | null>(null),
     current = useRef(0);
   const [active, setActive] = useState(0);
-  useMotionScene(root, ({ desktop, reduced }) => {
+  useMotionScene(root, ({ reduced }) => {
     const element = root.current;
     if (!element) return;
     const scenes = Array.from(
       element.querySelectorAll<HTMLElement>('.story-scene'),
     );
-    const line = element.querySelector('.chapter-progress span');
-    if (!desktop || reduced) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              const index = scenes.indexOf(entry.target as HTMLElement);
-              current.current = index;
-              setActive(index);
-            }
-          }
-        },
-        { threshold: 0.55 },
-      );
-      scenes.forEach((scene) => observer.observe(scene));
-      return () => observer.disconnect();
-    }
-    current.current = 0;
-    setActive(0);
     element.classList.add('story-enhanced');
     scenes.forEach((scene, i) =>
       gsap.set(scene, { zIndex: i, autoAlpha: i ? 0 : 1 }),
@@ -69,32 +50,11 @@ export function SignatureStory() {
       'inset(0% 0% 0% 100%)',
       'inset(40% 30% 40% 30%)',
     ];
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        id: 'living-story',
-        trigger: element,
-        start: 'top top',
-        end: () => `+=${Math.max(2800, innerHeight * 3.6)}`,
-        pin: true,
-        scrub: 0.65,
-        invalidateOnRefresh: true,
-      },
-      onUpdate: () => {
-        const chapter = Math.min(
-          4,
-          Math.max(0, Math.floor((tl.time() - 0.5) / 1.4)),
-        );
-        if (chapter !== current.current) {
-          current.current = chapter;
-          setActive(chapter);
-        }
-        gsap.set(line, { scaleX: tl.progress() });
-      },
-    });
-    timeline.current = tl;
+    const tl = gsap.timeline({ paused: true });
     scenes.forEach((scene, i) => {
       if (!i) return;
       const start = i * 1.4;
+      tl.addLabel(`chapter-${i}-start`, start);
       tl.set(scene, { autoAlpha: 1 }, start)
         .fromTo(
           scene,
@@ -141,19 +101,29 @@ export function SignatureStory() {
           start + 0.25,
         )
         .to(scenes[i - 1], { autoAlpha: 0, duration: 0.01 }, start + 1.01);
+      tl.addLabel(`chapter-${i}-end`, tl.duration());
     });
     tl.to({}, { duration: 0.6 });
+    const controller = bindStorySteps(
+      element,
+      tl,
+      reduced,
+      current.current,
+      (index) => {
+        current.current = index;
+        setActive(index);
+      },
+    );
+    steps.current = controller;
     return () => {
-      timeline.current = null;
+      controller.destroy();
+      steps.current = null;
       element.classList.remove('story-enhanced');
     };
   });
   const go = (index: number) => {
-    const tl = timeline.current,
-      st = ScrollTrigger.getById('living-story');
-    if (tl && st) {
-      const time = index ? index * 1.4 + 1.08 : 0.3;
-      scrollToPosition(st.start + (time / tl.duration()) * (st.end - st.start));
+    if (steps.current) {
+      steps.current.go(index);
     } else {
       const scene = document.getElementById(`chapter-${index + 1}`);
       if (scene)

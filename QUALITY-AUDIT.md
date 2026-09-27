@@ -343,3 +343,40 @@ Final TypeScript, lint, production build, 29 local regression tests, six HTTP sa
 The original search/browser workflow passed without the warning. Four focused database checks passed on each of Neon and the retained local fallback (empty catalogue preserved), including concurrent reads, temporary writes, rollback and zero checked-out connections after finalization. Ten affected concierge integration tests and 31 local regressions passed. TypeScript, lint, production build and six HTTP checks passed; 32 built client files contained zero credential matches. A fresh real Gemini browser search returned six units, all matched to fresh Neon facts, with preference persistence and lease release verified. Earlier comparison/security/abort and eight-width results remain retained.
 
 Neon remains primary, public inventory remains 8 projects/96 units, QA elevated staff access remains disabled, temporary action fixtures are removed and retained QA transcripts/request records are private and isolated. The existing gallery image-priority notice remains non-blocking. See the final [PostgreSQL closeout](docs/PHASE-7-AUDIT.md#postgresql-deprecation-closeout--22-september-2026) for source trace, test detail and scope limits. Nothing was published or uploaded.
+
+## Phase 8 local closeout - 26 September 2026
+
+Status: **local implementation verified; real Meta verification pending**. This does not claim full Phase 8 completion. Current repository and commits were inspected before editing; legitimate Antigravity work was preserved. See [the complete reconstruction, architecture and limitations](docs/PHASE-8-COMMUNICATIONS.md).
+
+| Check | Result |
+| --- | --- |
+| WhatsApp unit tests | 4 passed: validation, signatures, role/window/intent/status, Origin |
+| Existing WhatsApp integration suite | 7 passed, including previously disputed outbound-history assertion |
+| Focused closeout integration | 2 passed: CRM links/follow-ups; unread/modes/early and failed receipts |
+| Browser/API mutation | Same-origin 200, foreign Origin 403; browser action succeeds |
+| Responsive inbox and detail | 16 checks, widths 360/390/430/768/1024/1366/1440/1920, no document overflow |
+| Browser interactions | History/context, provider-disabled sending, manual refresh, preserved unsent draft, mobile menu, read marking and filter checks |
+| TypeScript / lint / production build | Passed on final source |
+| Client/public secret scan | 34 built client files + 32 public assets; zero matches |
+| Prior-phase regression scope | Six read-only HTTP sanity checks; completed broad suites not repeated |
+| Neon connection/migration | Pooled and direct successful; Phase 8 migration applied exactly once; no migration executed |
+| Fixture isolation | Eight synthetic-business QA threads PAUSED; zero pending Phase 8 QA follow-ups; new follow-up CANCELLED; business counts unchanged |
+| Live Meta | Not executed: four missing settings and last reported provisioning pending |
+
+The current code already replayed the same receipt timestamp for duplicate-delivery assertions, and that test passed unchanged. New fixes preserve failure state under late SENT/ACCEPTED callbacks, resolve customer associations only from consistent exact-phone matches, provide draft-preserving refresh and correct mobile notice/form flow. The browser exposed a valid-origin request rejection caused by Next's internal bind host; communication mutations now compare Origin against the request Host authority with scheme/port intact. Missing/foreign origins remain denied. Verification URLs are excluded from development request logs so their query token is not logged; provider/audit failures are not hidden.
+
+An initial sandbox unit-test process failed before test execution with `uv_os_get_passwd` ENOMEM; the same tests passed with normal execution permissions. A build completed before the browser exposed the Origin mismatch; the affected unit/lint/build checks were therefore rerun after the surgical fix. Database suites already passing were not repeated. No PostgreSQL query-queuing warning or captured browser console warning/error appeared in these focused checks. Nonblocking npm upgrade and Git line-ending notices do not require dependency or repository-wide changes.
+
+Manual Meta callback verification and messages subscription are user-reported evidence only. Required absent variables: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `META_APP_SECRET`. The verify token exists locally. Provider acceptance, delivery/read receipt and real inbound persistence still require a provisioned test number, valid configuration and current reachable callback. No credentials were displayed; no live send was simulated as success. Nothing was deployed, published or pushed.
+
+## Homepage intro lifecycle repair - 26 September 2026
+
+Compared all requested homepage/motion files plus the scene hook and header against checkpoint `2b13eb0` (Checkpoint before Antigravity switch - Phases 1 to 8). All matched before this repair. No Antigravity animation regression, session/local-storage completion flag, changed reduced-motion logic, route wrapper or new final-state CSS was found.
+
+Browser reproduction at bare `/`, scrollY=0 and reduced=false showed the static loader then immediate hiding. Temporary tracing proved this sequence: initial build with played=false; first RAF sets played=true; development Strict Mode cleanup; rebuild with played=true and unchanged media/scroll/hash conditions. The intro was therefore skipped by its own early completion marker. Tracing was removed.
+
+Only runtime change: `components/sections/hero.tsx` now commits played=true in the GSAP timeline's onComplete callback instead of a first-frame requestAnimationFrame. No timeline values, layout, easing, typography, loader safety CSS, scroll choreography or architectural code changed. Interrupted initialization can replay; completed initialization stays protected from duplicate media rebuilds.
+
+Actual browser checks: fresh bare homepage and refresh at 1440px; complete wordmark/panes/image/headline sequence at 1440 and 390px; no horizontal overflow; `#home` refresh intentionally skips; Account navigation/back preserves the hash skip; post-intro Explore residences scrolling works. The site's Reduce motion control exercises the shared reduced branch and hides the loader; re-enabling does not replay a completed intro. The system media query remained no-preference during this run: browser tooling offered no media emulation, so an OS-level prefers-reduced-motion=true run is NOT claimed. Its unchanged CSS/media branch was inspected. No captured hydration or GSAP error; existing WebGL shader precision/division and Next image-size advisories remain unrelated.
+
+TypeScript, lint and production build passed. No Phase 4-8 runtime/database changes were made by this repair; pre-existing Phase 8 working changes were preserved. Replay safely by opening `http://localhost:3000/` without any hash and reloading at the top with normal motion enabled. No storage clearing or production-only testing switch is needed. Nothing was published, deployed or pushed.

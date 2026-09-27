@@ -322,6 +322,17 @@
 .story-enhanced .story-copy {
   bottom: 180px;
 }
+/* Keep the same chapter canvas for touch and reduced-motion navigation. */
+.signature-story.story-enhanced {
+  height: 100svh;
+  min-height: 0;
+}
+.signature-story.story-enhanced .story-scene {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  min-height: 0;
+}
 .story-shade-1 {
   background:
     linear-gradient(90deg, #181713b8, transparent),
@@ -650,6 +661,9 @@
   }
 }
 @media (max-width: 700px) {
+  .story-enhanced .chapter-nav {
+    bottom: 96px;
+  }
   .chapter-nav-label {
     margin-bottom: 10px;
     gap: 8px;

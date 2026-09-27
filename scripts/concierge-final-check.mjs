@@ -21,8 +21,9 @@ function files(path) {
 const clientFiles = files('.next/static').filter((p) =>
   /\.(js|json|css)$/.test(p),
 );
+const publicFiles = files('public');
 let matches = 0;
-for (const path of clientFiles) {
+for (const path of [...clientFiles, ...publicFiles]) {
   const text = readFileSync(path, 'utf8');
   if (
     secretValues.some((v) => text.includes(v)) ||
@@ -35,6 +36,7 @@ for (const path of clientFiles) {
 console.log(
   JSON.stringify({
     clientFiles: clientFiles.length,
+    publicFiles: publicFiles.length,
     credentialMatches: matches,
   }),
 );

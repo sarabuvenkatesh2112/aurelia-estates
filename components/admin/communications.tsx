@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { can, type StaffRole } from '@/lib/admin/policy';
 type Row = Record<string, unknown>;
 const object = (v: unknown): Row =>
@@ -75,6 +75,7 @@ export function Communications({
   query: Record<string, string>;
 }) {
   const router = useRouter();
+  const [refreshing, startRefresh] = useTransition();
   const [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(''),
@@ -187,6 +188,9 @@ export function Communications({
               A considered conversation<em>.</em>
             </h1>
             <p>One relationship. A continuous history.</p>
+            <button className="comm-refresh" type="button" disabled={busy || refreshing} onClick={() => startRefresh(() => router.refresh())}>
+              {refreshing ? 'Refreshing…' : 'Refresh conversation history'}
+            </button>
           </div>
           {!data.ready && (
             <output className="comm-notice">

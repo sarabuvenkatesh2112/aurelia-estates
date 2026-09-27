@@ -1,4 +1,5 @@
 .comm-notice {
+  display: block;
   padding: 18px 22px;
   border: 1px solid #c9b883;
   background: #f5f0e1;
@@ -6,6 +7,12 @@
   margin: 0 0 24px;
   line-height: 1.65;
   overflow-wrap: anywhere;
+}
+.comm-refresh {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #c6cabe;
+  margin-top: 12px;
 }
 .comm-list {
   display: grid;
@@ -100,8 +107,23 @@
   font-size: 12px;
 }
 .comm-composer {
+  display: grid;
+  gap: 16px;
   border-top: 1px solid #deded2;
   padding-top: 26px;
+}
+.comm-composer > label,
+.comm-context .office-form,
+.comm-context .office-form label {
+  display: grid;
+  gap: 10px;
+}
+.comm-composer > button,
+.comm-context .office-form button {
+  padding: 12px 16px;
+  background: #21483d;
+  color: #fffdf8;
+  border: 1px solid #21483d;
 }
 .comm-preview {
   background: #f4f0e5;

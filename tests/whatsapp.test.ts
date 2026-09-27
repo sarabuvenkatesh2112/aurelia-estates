@@ -3,6 +3,13 @@ import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {canonicalWhatsAppPhone,commandSchema,communicationText,inboundIntent,serviceWindow,nextStatus,mayAccess,mayWrite} from '../lib/communications/contracts';
 import {validSignature,verifyChallenge} from '../lib/communications/signature';
+import {sameCommunicationOrigin} from '../lib/communications/contracts';
+await test('browser Host authority accepts same-origin and rejects cross-origin or missing origins',()=>{
+  for(const origin of ['http://localhost:3000','https://evil.test','http://localhost:3001','https://localhost:3000','null','']) {
+    const request=new Request('http://0.0.0.0:3000/api/admin/communications/',{headers:{host:'localhost:3000',...(origin?{origin}:{})}});
+    assert.equal(sameCommunicationOrigin(request),origin==='http://localhost:3000');
+  }
+});
 await test('canonical phones, safe Unicode and strict command boundaries',()=>{
   for(const value of ['9876543210','+919876543210','+91 9876543210','919876543210'])assert.equal(canonicalWhatsAppPhone(value),'+919876543210');
   for(const value of ['123','+19876543210','9999999999'])assert.throws(()=>canonicalWhatsAppPhone(value));
@@ -23,4 +30,5 @@ await test('five-role policy, exact 24-hour window, opt-out and monotonic delive
   const now=new Date();assert.equal(serviceWindow(new Date(now.getTime()-86400000),now),false);assert.ok(serviceWindow(new Date(now.getTime()-86399000),now));
   assert.equal(inboundIntent('STOP'),'OPT_OUT');assert.equal(inboundIntent('Talk to a person.'),'HUMAN');assert.equal(inboundIntent('Call me'),'HUMAN');
   assert.equal(nextStatus('READ','SENT'),'READ');assert.equal(nextStatus('DELIVERED','FAILED'),'DELIVERED');assert.equal(nextStatus('ACCEPTED','DELIVERED'),'DELIVERED');assert.equal(nextStatus('SENT','FAILED'),'FAILED');
+  assert.equal(nextStatus('FAILED','SENT'),'FAILED');assert.equal(nextStatus('FAILED','ACCEPTED'),'FAILED');assert.equal(nextStatus('FAILED','DELIVERED'),'DELIVERED');
 });

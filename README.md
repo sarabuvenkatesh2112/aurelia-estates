@@ -236,8 +236,8 @@ See [QUALITY-AUDIT.md](QUALITY-AUDIT.md) for the executed checks and their pract
 | 5     | COMPLETE - authentication, customer portal and private collections |
 | 6     | COMPLETE - secure staff CRM, visits, inventory and audit trail     |
 | 7     | COMPLETE - Gemini concierge, grounded tools and private actions    |
-| 8     | Real AI property assistant and recommendation pipeline             |
-| 9     | WhatsApp Cloud API and Google Maps integrations                    |
+| 8     | WhatsApp Business + CRM communications — local verification; live Meta pending |
+| 9     | Google Maps and subsequent integrations                            |
 | 10    | Analytics, expanded testing, performance and production deployment |
 
 Before real-world use, replace all fictional content, review regulatory and privacy requirements, validate factual property information and perform cross-browser/device and load testing. Server-side validation is implemented; public deployment and operational production hardening remain future work.
@@ -256,3 +256,13 @@ Final TypeScript, lint, production build, 31 local regression tests and six HTTP
 The PostgreSQL query-queuing warning is fixed: Prisma relation reads inside one transaction now use a transaction-local async queue before reaching the single pg client. Pool concurrency, transaction isolation, errors and cleanup are preserved; neither warning suppression nor a dependency downgrade was used. A fresh real Gemini browser search returned six units whose references matched fresh Neon reads after the fix.
 
 Known limits: free-tier/provider availability, finite model safety coverage and the existing gallery image-priority notice. Physical devices, other browsers and production abuse/load hardening are outside this local closure. The retained local fallback currently has an empty catalogue; connection, schema reads, temporary writes, rollback and pool cleanup were verified without seeding it. See [architecture/configuration](docs/PHASE-7-CONCIERGE.md) and [the detailed final audit](docs/PHASE-7-AUDIT.md). No credentials were exposed and nothing was published or uploaded.
+
+## PHASE 8 - LOCAL IMPLEMENTATION VERIFIED; LIVE META PENDING
+
+Reconstructed from clean `main` at `abb702d` on 26 September 2026. The checkpoint and both Antigravity QA commits are preserved. The existing WhatsApp migration is applied once; this continuation ran no migration, reset or seed. Neon pooled and direct reads both succeeded; the pooled runtime and local PostgreSQL fallback remain unchanged.
+
+The private Communication Center includes inbox/history, unread/latest state, filters, assignments, exact CRM relationships, consent, reviewed replies, approved-template rules and staff-requested Gemini drafts. Five-role RBAC and cross-agent boundaries are enforced server-side. STOP pauses communication, human takeover invalidates AI drafts, delivery history is append-only, and uncertain sends are never automatically retried. Small closeout fixes cover exact customer linking, late failed-status events, draft-preserving refresh, mobile form spacing, browser-origin handling and verification-token log protection.
+
+Final verification passed: four unit tests, nine focused integration tests, same/cross-origin HTTP checks, TypeScript, lint, production build, sixteen inbox/detail width checks, and six read-only HTTP sanity checks. The built client/public scan checked 34 client files and 32 public assets with zero credential matches. QA messages use synthetic business IDs and private paused threads; no new business requests were created. See [Phase 8 architecture, audit and live boundary](docs/PHASE-8-COMMUNICATIONS.md).
+
+**Phase 8 is not fully complete:** real Meta send/receive and signed live delivery status are unverified. The user completed callback verification/subscription manually, but last reported test-number provisioning pending. Missing server settings: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `META_APP_SECRET`. `WHATSAPP_VERIFY_TOKEN` is present. No tunnel hostname was hardcoded, and nothing was deployed, published or pushed.

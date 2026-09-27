@@ -28,6 +28,10 @@ import {
 } from './provider';
 import { applyReceipt } from './webhook';
 type Tx = Prisma.TransactionClient;
+async function linkedCustomer(tx: Tx, phone: string, leadCustomerId: string | null) {
+  const matches = await tx.customer.findMany({ where: { phone, deletedAt: null }, select: { id: true }, take: 2 });
+  return matches.length === 1 && (!leadCustomerId || matches[0].id === leadCustomerId) ? matches[0].id : null;
+}
 export const threadInclude = {
   contact: {
     include: {
@@ -237,7 +241,7 @@ export async function communicationCreate(raw: unknown, incoming?: Headers) {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${phoneNumberId + phone}))`;
       const contact = await tx.whatsAppContact.upsert({
         where: { phone },
-        create: { phone, displayName: lead.name },
+        create: { phone, displayName: lead.name, customerId: await linkedCustomer(tx, phone, lead.customerId) },
         update: {},
       });
       const existing = await tx.whatsAppConversation.findUnique({
@@ -454,6 +458,7 @@ export async function communicationCommand(
         )
           throw new PublicError('Enquiry does not match.');
         data.lead = { connect: { id: lead.id } };
+        await tx.whatsAppContact.update({where:{id:thread.contactId},data:{customerId:await linkedCustomer(tx,thread.contact.phone,lead.customerId)}});
         data.project = { connect: { id: lead.projectId } };
         data.agent = lead.agentId
           ? { connect: { id: lead.agentId } }

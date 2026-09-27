@@ -97,6 +97,15 @@ export function canonicalWhatsAppPhone(value: string) {
 export function mayWrite(role: StaffRole) {
   return can(role, 'crm');
 }
+export function sameCommunicationOrigin(request: Request) {
+  const origin = request.headers.get('origin');
+  if (!origin) return false;
+  const expected = new URL(request.url);
+  // Next dev may expose its internal bind host in request.url. Host is the
+  // browser-requested authority; never accept arbitrary forwarded origins.
+  expected.host = request.headers.get('host') || expected.host;
+  return origin === expected.origin;
+}
 export function mayAccess(
   role: StaffRole,
   staffId: string,
@@ -134,6 +143,7 @@ const rank: Record<string, number> = {
   READ: 5,
 };
 export function nextStatus(current: string, incoming: string) {
+  if(current==='FAILED'&&!['DELIVERED','READ'].includes(incoming))return current;
   if(incoming==='FAILED'&&!['DELIVERED','READ'].includes(current))return 'FAILED';
   return rank[incoming] >= rank[current] ? incoming : current;
 }

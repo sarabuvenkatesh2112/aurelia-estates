@@ -5,6 +5,7 @@ import {
   syncTemplates,
 } from '@/lib/communications/service';
 import { requireStaff } from '@/lib/admin/auth';
+import { sameCommunicationOrigin } from '@/lib/communications/contracts';
 import { errorResponse, PublicError, readBody } from '@/lib/http';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ async function handle(
         request.headers,
       );
     else {
-      if (request.headers.get('origin') !== new URL(request.url).origin)
+      if (!sameCommunicationOrigin(request))
         throw new PublicError('A same-origin request is required.', 403);
       const body = await readBody(request);
       result =

@@ -2297,14 +2297,13 @@ img {
   display: initial;
 }
 @media (max-width: 999px) {
-  .story-scene,
-  .story-scene:not(:first-child) {
+  .signature-story:not(.story-enhanced) .story-scene {
     opacity: 1 !important;
     visibility: visible !important;
     clip-path: none !important;
   }
-  .story-scene h3,
-  .story-image {
+  .signature-story:not(.story-enhanced) .story-scene h3,
+  .signature-story:not(.story-enhanced) .story-image {
     transform: none !important;
   }
 }
@@ -2363,14 +2362,13 @@ img {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .story-scene,
-  .story-scene:not(:first-child) {
+  .signature-story:not(.story-enhanced) .story-scene {
     opacity: 1 !important;
     visibility: visible !important;
     clip-path: none !important;
   }
-  .story-scene h3,
-  .story-image {
+  .signature-story:not(.story-enhanced) .story-scene h3,
+  .signature-story:not(.story-enhanced) .story-image {
     transform: none !important;
   }
 }
