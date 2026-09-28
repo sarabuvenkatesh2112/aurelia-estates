@@ -1,7 +1,12 @@
 import gsap from 'gsap';
 import { Observer } from 'gsap/Observer';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { scrollToPosition, suspendSmoothScroll } from '@/lib/scroll';
+import {
+  isSectionJumping,
+  sectionJumpEvent,
+  scrollToPosition,
+  suspendSmoothScroll,
+} from '@/lib/scroll';
 import { ScrollIntent } from '@/lib/motion/scroll-intent';
 
 /** ScrollTrigger owns pinning; Observer owns intent only while the pin is held. */
@@ -137,7 +142,7 @@ export function bindStorySteps(
   });
   observer.disable();
   const enter = (direction: number) => {
-    if (!pin || held || exiting) return;
+    if (!pin || held || exiting || isSectionJumping()) return;
     // Programmatic jumps over the entire section must remain possible.
     if (
       Math.abs(window.scrollY - (direction > 0 ? pin.start : pin.end)) >
@@ -205,6 +210,13 @@ export function bindStorySteps(
       release();
   };
   document.addEventListener('click', navigation, true);
+  const jump = () => {
+    release();
+    animation?.kill();
+    busy = false;
+    show(index);
+  };
+  window.addEventListener(sectionJumpEvent, jump);
   const focus = (event: FocusEvent) => {
     if (held && !element.contains(event.target as Node)) release();
   };
@@ -231,6 +243,7 @@ export function bindStorySteps(
       pin = undefined;
       document.removeEventListener('keydown', keyboard);
       document.removeEventListener('click', navigation, true);
+      window.removeEventListener(sectionJumpEvent, jump);
       document.removeEventListener('focusin', focus);
       scenes.forEach((scene) => {
         scene.inert = false;

@@ -1,5 +1,12 @@
 'use client';
-import { useEffect, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type KeyboardEvent,
+} from 'react';
 import { AccountLink } from '@/components/account/customer-context';
 import { Menu, ArrowUpRight } from 'lucide-react';
 
@@ -10,6 +17,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useExperience } from './experience-provider';
+import { jumpToSection } from '@/lib/scroll';
 export const navItems = [
   'Residences',
   'Developments',
@@ -21,7 +29,41 @@ export const navItems = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
+  const pendingSection = useRef<string | null>(null);
   const { open } = useExperience();
+  const arrive = (id: string) => {
+    // Commit the sticky state with the jump rather than waiting for a scroll event.
+    setScrolled(id !== 'home');
+    jumpToSection(id);
+  };
+  const navigate = (event: MouseEvent<HTMLAnchorElement>, mobile = false) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    event.preventDefault();
+    const id = event.currentTarget.hash.slice(1);
+    if (mobile) {
+      pendingSection.current = id;
+      setMenu(false);
+    } else arrive(id);
+  };
+  const activateSpace = (event: KeyboardEvent<HTMLAnchorElement>) => {
+    if (
+      event.key !== ' ' ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey
+    )
+      return;
+    event.preventDefault();
+    if (!event.repeat) event.currentTarget.click();
+  };
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 60);
     update();
@@ -31,12 +73,23 @@ export function Header() {
   return (
     <>
       <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
-        <a className="wordmark" href="#home" aria-label="Aurelia Estates home">
+        <a
+          className="wordmark"
+          href="#home"
+          aria-label="Aurelia Estates home"
+          onClick={navigate}
+          onKeyDown={activateSpace}
+        >
           AURELIA<span>ESTATES</span>
         </a>
         <nav className="desktop-nav" aria-label="Main navigation">
           {navItems.map((n) => (
-            <a key={n} href={`#${n.toLowerCase()}`}>
+            <a
+              key={n}
+              href={`#${n.toLowerCase()}`}
+              onClick={navigate}
+              onKeyDown={activateSpace}
+            >
               {n}
             </a>
           ))}
@@ -53,7 +106,18 @@ export function Header() {
           <Menu />
         </button>
       </header>
-      <Dialog open={menu} onOpenChange={setMenu}>
+      <Dialog
+        open={menu}
+        onOpenChange={setMenu}
+        onOpenChangeComplete={(isOpen) => {
+          if (!isOpen && pendingSection.current) {
+            const id = pendingSection.current;
+            pendingSection.current = null;
+            // Wait for the existing modal to release body scrolling/focus first.
+            arrive(id);
+          }
+        }}
+      >
         <DialogContent className="mobile-menu">
           <DialogTitle className="wordmark">
             AURELIA<span>ESTATES</span>
@@ -67,7 +131,8 @@ export function Header() {
                 style={{ '--link-index': i } as CSSProperties}
                 key={n}
                 href={`#${n.toLowerCase()}`}
-                onClick={() => setMenu(false)}
+                onClick={(event) => navigate(event, true)}
+                onKeyDown={activateSpace}
               >
                 <small>0{i + 1}</small>
                 {n}

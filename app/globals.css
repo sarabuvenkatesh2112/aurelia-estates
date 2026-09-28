@@ -173,6 +173,7 @@ img {
   top: 15px;
 }
 .site-header {
+  --section-anchor-offset: 86px;
   height: 99px;
   position: absolute;
   z-index: 40;
@@ -1695,6 +1696,9 @@ img {
   }
   .site-header.scrolled {
     height: 68px;
+  }
+  .site-header {
+    --section-anchor-offset: 78px;
   }
   .wordmark {
     font-size: 24px;
