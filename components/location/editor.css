@@ -1,0 +1,102 @@
+.location-office {
+  max-width: 1000px;
+  margin: auto;
+  padding: 36px 24px;
+}
+.location-office h1 {
+  font:
+    400 clamp(28px, 5vw, 46px)/1.2 Georgia,
+    serif;
+  margin: 28px 0;
+}
+.location-office a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  margin-right: 24px;
+}
+.location-office ul {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+.location-office li {
+  border-bottom: 1px solid #ccd0c6;
+  padding: 16px 0;
+}
+.location-editor {
+  max-width: 760px;
+}
+.location-editor fieldset {
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid #bbc3b2;
+  min-width: 0;
+}
+.location-editor label {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  text-transform: capitalize;
+  font-size: 14px;
+}
+.location-editor input,
+.location-editor textarea,
+.location-editor select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #aeb7a4;
+  background: #faf9f4;
+  font: inherit;
+}
+.location-editor textarea {
+  min-height: 80px;
+}
+.location-editor-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.location-editor .location-editor-check {
+  display: flex;
+  align-items: center;
+  text-transform: none;
+}
+.location-editor-check input {
+  width: 20px;
+  flex-shrink: 0;
+}
+.location-editor button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid #53634b;
+  cursor: pointer;
+}
+.location-editor [role='status'] {
+  line-height: 1.6;
+}
+.location-editor :focus-visible {
+  outline: 2px solid #546a49;
+  outline-offset: 3px;
+}
+@media (max-width: 500px) {
+  .location-editor-pair {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .location-editor fieldset {
+    padding: 16px;
+  }
+  .location-office {
+    padding: 24px 18px;
+  }
+}
+.location-editor output {
+  display: block;
+  line-height: 1.6;
+  margin: 20px 0;
+}

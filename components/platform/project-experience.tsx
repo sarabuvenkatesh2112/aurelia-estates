@@ -12,7 +12,14 @@ import { CatalogCard } from './catalog-card';
 import { emitEvent } from '@/lib/events';
 import { formatPrice, formatRupees } from '@/lib/format';
 import type { ProjectDetail } from '@/lib/services/projectService';
-export function ProjectExperience({ detail: d, whatsAppHref }: { detail: ProjectDetail; whatsAppHref?:string|null }) {
+import { ProjectLocation } from '@/components/location/project-location';
+export function ProjectExperience({
+  detail: d,
+  whatsAppHref,
+}: {
+  detail: ProjectDetail;
+  whatsAppHref?: string | null;
+}) {
   const { open } = useExperience();
   const { reduced } = useMotionPreference();
   const viewed = useRef(false);
@@ -71,7 +78,16 @@ export function ProjectExperience({ detail: d, whatsAppHref }: { detail: Project
           </h2>
           <p>{d.description}</p>
           <p className="fine-print">Fictional developer: {p.developer}</p>
-          {whatsAppHref&&<a className="text-link" href={whatsAppHref} target="_blank" rel="noopener noreferrer">Ask about this residence on WhatsApp ↗</a>}
+          {whatsAppHref && (
+            <a
+              className="text-link"
+              href={whatsAppHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ask about this residence on WhatsApp ↗
+            </a>
+          )}
         </div>
         <div className="project-key-facts">
           <dl>
@@ -323,37 +339,8 @@ export function ProjectExperience({ detail: d, whatsAppHref }: { detail: Project
             </p>
           ))}
         </div>
-        <div>
-          <p className="eyebrow">CONNECTED TO WHAT MATTERS</p>
-          <h2>
-            A sense of <em>place.</em>
-          </h2>
-          {d.nearby.length ? (
-            <ul className="nearby-list">
-              {d.nearby.map((n) => (
-                <li key={n.name}>
-                  <span>
-                    {n.name}
-                    <small>
-                      {n.category.replaceAll('_', ' ').toLowerCase()}
-                    </small>
-                  </span>
-                  <strong>
-                    {n.distance} km
-                    <small>{n.minutes ? `~${n.minutes} min` : ''}</small>
-                  </strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Neighbourhood information will follow.</p>
-          )}
-          <p className="fine-print">
-            Distances and travel times are fictional illustrations, not live
-            routing information.
-          </p>
-        </div>
       </section>
+      {d.location && <ProjectLocation location={d.location} />}
       {d.related.length > 0 && (
         <section className="project-related">
           <p className="eyebrow">ANOTHER PERSPECTIVE</p>

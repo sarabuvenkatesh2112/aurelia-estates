@@ -8,6 +8,7 @@ import { SaveResidence } from './save-controls';
 import { useCustomer, type Customer } from './customer-context';
 import { profileSchema, savedSearchSchema } from '@/lib/validation/customer';
 import { indiaDate } from '@/lib/validation/forms';
+import { LocationLinks } from '@/components/location/location-links';
 type Project = {
   id: string;
   name: string;
@@ -138,6 +139,13 @@ export function AccountPortal({ initial }: { initial: AccountData }) {
               <br />
               Submitted {displayDate(v.createdAt)}
             </p>
+            <p>
+              {v.project.location.locality}, {v.project.location.city}
+            </p>
+            <LocationLinks slug={v.project.slug} />
+            <Link href={`/residences/${v.project.slug}/#location`}>
+              Location &amp; directions ↗
+            </Link>
           </article>
         ))}
       </div>
@@ -214,7 +222,7 @@ export function AccountPortal({ initial }: { initial: AccountData }) {
                     <Image
                       src={f.project.media[0]?.url || '/images/exterior.webp'}
                       alt={f.project.name + ' architectural mood reference'}
-                    loading={index === 0 ? 'eager' : 'lazy'}
+                      loading={index === 0 ? 'eager' : 'lazy'}
                       width={500}
                       height={320}
                     />

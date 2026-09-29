@@ -11,6 +11,8 @@ import {
 } from './contracts';
 import { PublicError } from '@/lib/http';
 import { requireCustomer } from '@/lib/auth/server';
+import { projectLocation } from '@/lib/location/repository';
+import { verifiedContext } from '@/lib/location/contracts';
 
 export const publicProject = {
   deletedAt: null,
@@ -130,6 +132,27 @@ export async function executeTool(
   if (!Object.hasOwn(toolSchemas, name))
     throw new PublicError('That capability is unavailable.');
   const kind = name as ToolName;
+  if (kind === 'location_context') {
+    const { slugs, category } = toolSchemas.location_context.parse(raw);
+    const locations = await Promise.all(
+      [...new Set(slugs)].map(projectLocation),
+    );
+    return {
+      kind,
+      details: {
+        locations: locations
+          .filter((p) => p !== null)
+          .map((p) => ({
+            ...p,
+            nearby: p.nearby.filter(
+              (n) => category === null || n.category === category,
+            ),
+          })),
+        warning:
+          'Fictional catalogue. Null distances are unverified, not zero. Do not rank by missing distances or infer commute times. Stored context is not live Google routing.',
+      },
+    };
+  }
   if (kind === 'search_residences') {
     const { filters } = toolSchemas.search_residences.parse(raw);
     const rows = await getDb().unit.findMany({
@@ -179,6 +202,8 @@ export async function executeTool(
           select: {
             distanceKm: true,
             isIllustrative: true,
+            sourceNote: true,
+            verifiedAt: true,
             nearbyPlace: { select: { name: true, category: true } },
           },
         },
@@ -187,7 +212,21 @@ export async function executeTool(
     return {
       kind,
       details: p
-        ? JSON.parse(JSON.stringify(p))
+        ? JSON.parse(
+            JSON.stringify({
+              ...p,
+              nearbyPlaces: p.nearbyPlaces.map((n) => ({
+                ...n,
+                distanceKm: verifiedContext(
+                  n.isIllustrative,
+                  n.sourceNote,
+                  n.verifiedAt,
+                )
+                  ? Number(n.distanceKm)
+                  : null,
+              })),
+            }),
+          )
         : {
             message:
               'This project is not in the public catalogue. Its features cannot be verified.',

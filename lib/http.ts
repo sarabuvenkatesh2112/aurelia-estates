@@ -26,7 +26,7 @@ export function errorResponse(error: unknown) {
     { status: 503 },
   );
 }
-export async function readBody(request: Request) {
+export async function readBody(request: Request, maxBytes = 8192) {
   const origin = request.headers.get('origin');
   if (
     origin &&
@@ -36,7 +36,7 @@ export async function readBody(request: Request) {
     throw new PublicError('This request could not be accepted.', 403);
   if (!request.headers.get('content-type')?.includes('application/json'))
     throw new PublicError('A JSON request is required.', 415);
-  if (Number(request.headers.get('content-length')) > 8192)
+  if (Number(request.headers.get('content-length')) > maxBytes)
     throw new PublicError('This request is too large.', 413);
   const reader = request.body?.getReader();
   if (!reader) throw new PublicError('Request information is missing.');
@@ -46,7 +46,7 @@ export async function readBody(request: Request) {
     const { done, value } = await reader.read();
     if (done) break;
     length += value.length;
-    if (length > 8192) {
+    if (length > maxBytes) {
       await reader.cancel();
       throw new PublicError('This request is too large.', 413);
     }

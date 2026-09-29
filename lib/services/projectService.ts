@@ -11,6 +11,7 @@ import {
 } from '@/lib/repositories/projectRepository';
 import { searchSchema, type SearchFilters } from '@/lib/validation/search';
 import type { Property } from '@/types/property';
+import { projectLocation } from '@/lib/location/repository';
 
 export function toProperty(
   p: ProjectRecord,
@@ -116,6 +117,7 @@ export const projectDetail = cache(async (slug: string, page = 1) => {
   );
   return {
     property,
+    location: await projectLocation(slug),
     description: project.longDescription,
     media: project.media.map((m) => ({
       id: m.id,

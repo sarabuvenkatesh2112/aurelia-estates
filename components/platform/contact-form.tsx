@@ -1,4 +1,5 @@
 'use client';
+import { LocationLinks } from '@/components/location/location-links';
 import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Check, ArrowUpRight } from 'lucide-react';
@@ -321,6 +322,22 @@ export function ContactForm({
                 (c) => c.id === values.configurationId,
               )?.name
             }
+          </dd>
+        </>
+      )}
+      {selected?.slug && (
+        <>
+          <dt>Location</dt>
+          <dd>
+            {selected.neighbourhood}, {selected.city}
+            <br />
+            <LocationLinks slug={selected.slug} />
+            <Link
+              href={`/residences/${selected.slug}/#location`}
+              onClick={() => open(null)}
+            >
+              View location &amp; directions ↗
+            </Link>
           </dd>
         </>
       )}

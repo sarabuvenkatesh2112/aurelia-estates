@@ -266,3 +266,14 @@ The private Communication Center includes inbox/history, unread/latest state, fi
 Final verification passed: four unit tests, nine focused integration tests, same/cross-origin HTTP checks, TypeScript, lint, production build, sixteen inbox/detail width checks, and six read-only HTTP sanity checks. The built client/public scan checked 34 client files and 32 public assets with zero credential matches. QA messages use synthetic business IDs and private paused threads; no new business requests were created. See [Phase 8 architecture, audit and live boundary](docs/PHASE-8-COMMUNICATIONS.md).
 
 **Phase 8 is not fully complete:** real Meta send/receive and signed live delivery status are unverified. The user completed callback verification/subscription manually, but last reported test-number provisioning pending. Missing server settings: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `META_APP_SECRET`. `WHATSAPP_VERIFY_TOKEN` is present. No tunnel hostname was hardcoded, and nothing was deployed, published or pushed.
+
+
+## PHASE 9 - LOCAL IMPLEMENTATION COMPLETE; LIVE GOOGLE MAPS VERIFICATION PENDING
+
+Location intelligence now reuses Neon project/location records, the existing catalogue search, inventory permissions and append-only audit history. Public project pages provide categorized nearby context, a lazy Google Maps boundary, accessible no-key fallback and safe locality/directions links. Customer visit cards and review share public location controls without changing appointment status. Unverified fictional distances are not treated as travel facts.
+
+TypeScript, lint, production build, 14 focused tests (including integration parent/subtests), and the client/public secret scan passed. The previously completed eight-width public/editor browser audit is retained. The final shared visit disclosure also passed at 1440px and 390px, including keyboard activation, safe locality links, request-status wording, no horizontal overflow and no console errors. No visit was submitted. After the user replaced the rejected key locally, both focused live Gemini checks passed: location_context retrieved Neon locality/hospital context, and the airport query refused to invent missing distance or travel time. No schema weakening or provider switch was needed. Google Maps credentials are absent and live Google verification has not been attempted.
+
+**Phase 9 local implementation complete; live Google Maps verification pending.** Live Gemini location verification is complete.
+
+See [the Phase 9 architecture, exact file inventory and audit](docs/PHASE-9-LOCATION-INTELLIGENCE.md) for evidence, configuration names and remaining checks. No migration was rerun at closeout, no public inventory was replaced, and nothing was published or pushed.

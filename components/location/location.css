@@ -1,0 +1,209 @@
+.location-experience {
+  padding: clamp(56px, 7vw, 112px) var(--gutter, 6vw);
+  background: #eeeae1;
+  color: #252923;
+  scroll-margin-top: 100px;
+}
+.location-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  align-items: end;
+  margin-bottom: 40px;
+}
+.location-heading h2 {
+  font: 400 clamp(36px, 4vw, 64px)/1.08 var(--font-serif, Georgia, serif);
+  max-width: 680px;
+}
+.location-heading > p {
+  line-height: 1.7;
+  color: #5e635a;
+}
+.location-heading em {
+  font-weight: 400;
+}
+.location-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
+  gap: clamp(24px, 5vw, 76px);
+  align-items: center;
+}
+.location-context h3,
+.location-nearby-heading h3 {
+  font: 400 clamp(25px, 2.4vw, 36px)/1.2 var(--font-serif, Georgia, serif);
+}
+.location-context p {
+  line-height: 1.75;
+  margin: 18px 0;
+}
+.location-provenance {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #64685f;
+  margin-top: 28px;
+}
+.location-map-shell {
+  height: 440px;
+  min-width: 0;
+  position: relative;
+  background: #dfe2d7;
+  border: 1px solid #bfc7b9;
+}
+.location-map {
+  height: 100%;
+  width: 100%;
+}
+.location-map-fallback {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  background: radial-gradient(ellipse at center, #f5f2e9, #dce0d4);
+}
+
+.location-experience output {
+  display: block;
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 340px;
+}
+.location-compass {
+  color: #788571;
+  font-size: 26px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+.location-map-fallback h3 {
+  font:
+    400 34px Georgia,
+    serif;
+  margin: 10px 0;
+}
+.location-map-fallback p {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 340px;
+}
+.location-map-fallback button {
+  margin-top: 16px;
+}
+.location-reset {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: #f7f4eb;
+}
+.location-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 18px;
+}
+.location-actions a,
+.location-actions button,
+.location-map-shell button {
+  min-height: 44px;
+  padding: 10px 0;
+  line-height: 1.5;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  cursor: pointer;
+}
+.location-map-shell button {
+  padding: 10px 16px;
+}
+.location-experience :focus-visible {
+  outline: 2px solid #4d6849;
+  outline-offset: 4px;
+}
+.location-nearby-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  margin: 50px 0 24px;
+}
+.location-nearby-heading label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+.location-nearby-heading select {
+  min-height: 44px;
+  min-width: 180px;
+  padding: 10px;
+  border: 1px solid #a8afa1;
+  background: transparent;
+}
+.location-nearby-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.location-nearby-grid article {
+  border-top: 1px solid #abb5a6;
+  padding: 24px 16px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.location-nearby-grid article.is-selected {
+  background: #dce2d4;
+}
+.location-nearby-grid h4 {
+  font:
+    400 25px Georgia,
+    serif;
+  margin: 14px 0;
+}
+.location-nearby-grid p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.location-nearby-grid small {
+  display: block;
+  line-height: 1.6;
+  margin-top: 12px;
+  color: #62695d;
+}
+@media (max-width: 999px) {
+  .location-layout {
+    grid-template-columns: 1fr;
+  }
+  .location-heading {
+    align-items: start;
+  }
+  .location-map-shell {
+    height: 380px;
+  }
+  .location-nearby-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .location-heading,
+  .location-nearby-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .location-nearby-grid {
+    grid-template-columns: 1fr;
+  }
+  .location-map-shell {
+    height: 330px;
+  }
+  .location-map-fallback {
+    padding: 22px;
+  }
+  .location-context h3 {
+    font-size: 28px;
+  }
+}
+.location-map-fallback {
+  position: absolute;
+  inset: 0;
+}

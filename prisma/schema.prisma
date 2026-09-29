@@ -65,6 +65,8 @@ enum VisitStatus {
 }
 
 enum NearbyCategory {
+  RESTAURANT
+  PARK
   AIRPORT
   IT_HUB
   SCHOOL
@@ -123,6 +125,14 @@ model Location {
 }
 
 model Project {
+  publicAddress String?
+  mapLabel String?
+  latitude Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  locationNarrative String?
+  locationSource String?
+  locationVerifiedAt DateTime?
+  locationVersion Int @default(0)
   communications WhatsAppConversation[]
   id                 String                 @id @default(uuid()) @db.Uuid
   legacyId           String?                @unique
@@ -356,6 +366,9 @@ model NearbyPlace {
 }
 
 model ProjectNearbyPlace {
+  sourceNote String?
+  contextNote String?
+  verifiedAt DateTime?
   id                     String      @id @default(uuid()) @db.Uuid
   projectId              String      @db.Uuid
   project                Project     @relation(fields: [projectId], references: [id])

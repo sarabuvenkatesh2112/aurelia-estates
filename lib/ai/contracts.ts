@@ -77,6 +77,35 @@ export const emptyFilters: AiFilters = {
   possessionBefore: null,
 };
 export const toolSchemas = {
+  location_context: z
+    .object({
+      slugs: z
+        .array(
+          z
+            .string()
+            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+            .max(120),
+        )
+        .min(1)
+        .max(3),
+      category: z
+        .enum([
+          'AIRPORT',
+          'METRO',
+          'RAILWAY_STATION',
+          'HIGHWAY',
+          'IT_HUB',
+          'BUSINESS_DISTRICT',
+          'SCHOOL',
+          'HOSPITAL',
+          'MALL',
+          'RESTAURANT',
+          'PARK',
+          'BEACH',
+        ])
+        .nullable(),
+    })
+    .strict(),
   search_residences: z.object({ filters: filtersSchema }).strict(),
   project_details: z
     .object({ slug: z.string().regex(/^[a-z0-9-]{1,100}$/) })

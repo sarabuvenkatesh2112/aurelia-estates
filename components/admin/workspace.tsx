@@ -1144,6 +1144,7 @@ export function AdminWorkspace({
     'follow-ups',
     'inventory',
     'communications',
+    ...(can(staff.role, 'inventory') ? ['locations'] : []),
     ...(can(staff.role, 'analytics') ? ['analytics'] : []),
     ...(can(staff.role, 'staff') ? ['staff'] : []),
     ...(can(staff.role, 'audit') ? ['audit'] : []),
