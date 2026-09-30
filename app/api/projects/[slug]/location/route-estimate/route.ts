@@ -1,11 +1,11 @@
 import { projectLocation } from '@/lib/location/repository';
-import { googleRoute } from '@/lib/location/google-routes';
+import { routeEstimate } from '@/lib/location/route-provider';
 import { errorResponse, PublicError } from '@/lib/http';
 import { z } from 'zod';
 // Coalesce concurrent requests; bounded local cooldown prevents repeated control clicks.
 const pending = new Map<
   string,
-  { at: number; result: ReturnType<typeof googleRoute> }
+  { at: number; result: ReturnType<typeof routeEstimate> }
 >();
 let lastProviderCall = 0;
 export async function GET(
@@ -45,7 +45,7 @@ export async function GET(
       lastProviderCall = now;
       entry = {
         at: now,
-        result: googleRoute(location.coordinates, nearby.coordinates),
+        result: routeEstimate(location.coordinates, nearby.coordinates),
       };
       pending.set(key, entry);
     }

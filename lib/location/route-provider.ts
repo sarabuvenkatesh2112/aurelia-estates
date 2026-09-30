@@ -6,19 +6,19 @@ export type RouteEstimate =
       distanceKm: number;
       minutes: number;
       checkedAt: string;
-      source: 'Google Routes';
+      source: 'openrouteservice';
     }
   | {
       status: 'unavailable';
       reason: 'not-configured' | 'provider-unavailable' | 'invalid-route';
     };
-export async function googleRoute(
+export async function routeEstimate(
   origin: Coordinates,
   destination: Coordinates,
   signal?: AbortSignal,
   transport: typeof fetch = fetch,
 ): Promise<RouteEstimate> {
-  const key = process.env.GOOGLE_MAPS_SERVER_API_KEY;
+  const key = process.env.OPENROUTESERVICE_API_KEY;
   if (!key) return { status: 'unavailable', reason: 'not-configured' };
   if (
     !coordinatesSchema.safeParse(origin).success ||
@@ -27,7 +27,7 @@ export async function googleRoute(
     return { status: 'unavailable', reason: 'invalid-route' };
   try {
     const response = await transport(
-      'https://routes.googleapis.com/directions/v2:computeRoutes',
+      'https://api.openrouteservice.org/v2/directions/driving-car/json',
       {
         method: 'POST',
         cache: 'no-store',
@@ -36,39 +36,27 @@ export async function googleRoute(
           : AbortSignal.timeout(8000),
         headers: {
           'Content-Type': 'application/json',
-          'X-Goog-Api-Key': key,
-          'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration',
+          Authorization: key,
         },
         body: JSON.stringify({
-          origin: {
-            location: {
-              latLng: { latitude: origin.lat, longitude: origin.lng },
-            },
-          },
-          destination: {
-            location: {
-              latLng: { latitude: destination.lat, longitude: destination.lng },
-            },
-          },
-          travelMode: 'DRIVE',
-          routingPreference: 'TRAFFIC_UNAWARE',
-          computeAlternativeRoutes: false,
+          coordinates: [
+            [origin.lng, origin.lat],
+            [destination.lng, destination.lat],
+          ],
+          instructions: false,
+          geometry: false,
         }),
       },
     );
     if (!response.ok)
       return { status: 'unavailable', reason: 'provider-unavailable' };
     const body = await response.json();
-    const route = body?.routes?.[0];
-    const seconds =
-      typeof route?.duration === 'string' &&
-      /^\d+(?:\.\d+)?s$/.test(route.duration)
-        ? Number(route.duration.slice(0, -1))
-        : NaN;
+    const route = body?.routes?.[0]?.summary;
+    const seconds = route?.duration;
     if (
-      !Number.isFinite(route?.distanceMeters) ||
-      route.distanceMeters < 0 ||
-      route.distanceMeters > 1e7 ||
+      !Number.isFinite(route?.distance) ||
+      route.distance < 0 ||
+      route.distance > 1e7 ||
       !Number.isFinite(seconds) ||
       seconds < 0 ||
       seconds > 604800
@@ -76,10 +64,10 @@ export async function googleRoute(
       return { status: 'unavailable', reason: 'invalid-route' };
     return {
       status: 'available',
-      distanceKm: Math.round(route.distanceMeters / 100) / 10,
+      distanceKm: Math.round(route.distance / 100) / 10,
       minutes: Math.max(1, Math.ceil(seconds / 60)),
       checkedAt: new Date().toISOString(),
-      source: 'Google Routes',
+      source: 'openrouteservice',
     };
   } catch {
     return { status: 'unavailable', reason: 'provider-unavailable' };

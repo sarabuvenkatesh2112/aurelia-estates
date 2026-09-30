@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { PublicLocation } from '@/lib/location/contracts';
-import type { GoogleMap } from '@/lib/location/google-maps';
+import { mountLocationMap, type MapHandle } from '@/lib/location/browser-map';
 import './location.css';
 
 export function ProjectLocation({ location: p }: { location: PublicLocation }) {
@@ -14,9 +14,9 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
   const [category, setCategory] = useState('ALL');
   const [route, setRoute] = useState<Record<string, string>>({});
   const canvas = useRef<HTMLDivElement>(null);
-  const map = useRef<GoogleMap | null>(null);
+  const map = useRef<MapHandle | null>(null);
   const requests = useRef(new Map<string, AbortController>());
-  const configured = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
   useEffect(() => {
     const pending = requests.current;
     return () => {
@@ -25,63 +25,38 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
     };
   }, []);
   useEffect(() => {
-    if (!requested || !canvas.current || !p.verified || !p.coordinates) return;
-    let disposed = false;
-    let cleanup = () => {};
-    let unsubscribe = () => {};
-    void import('@/lib/location/google-maps')
-      .then(async ({ loadGoogleMaps, onMapFailure }) => {
-        if (disposed) return;
-        unsubscribe = onMapFailure(() => {
-          if (!disposed) setStatus('error');
-        });
-        const api = await loadGoogleMaps();
-        if (disposed || !canvas.current) return;
-        const instance = new api.Map(canvas.current, {
-          center: p.coordinates,
-          zoom: 13,
-          mapId: 'DEMO_MAP_ID',
-          gestureHandling: 'cooperative',
-          scrollwheel: false,
-          streetViewControl: false,
-          mapTypeControl: false,
-          fullscreenControl: false,
-          clickableIcons: false,
-        });
+    if (!requested || !canvas.current) return;
+    const exact = p.verified && p.coordinates;
+    const cleanup = mountLocationMap(
+      canvas.current,
+      {
+        // Regional overview is not a project coordinate or a distance claim.
+        center: exact || { lat: 22, lng: 79 },
+        zoom: exact ? 13 : 3.5,
+        points: exact
+          ? [
+              { id: null, name: p.label, coordinates: exact },
+              ...p.nearby.flatMap((n) =>
+                !n.illustrative && n.coordinates
+                  ? [{ id: n.id, name: n.name, coordinates: n.coordinates }]
+                  : [],
+              ),
+            ]
+          : [],
+        select: setSelected,
+      },
+      (instance) => {
         map.current = instance;
-        const points = [
-          { id: null, name: p.label, coordinates: p.coordinates },
-          ...p.nearby.filter((n) => !n.illustrative && n.coordinates),
-        ];
-        const markers = points.map((point) => {
-          const marker = new api.marker.AdvancedMarkerElement({
-            map: instance,
-            position: point.coordinates,
-            title: point.name,
-          });
-          const listener = marker.addListener('click', () =>
-            setSelected(point.id),
-          );
-          return { marker, listener };
-        });
-        cleanup = () => {
-          markers.forEach(({ marker, listener }) => {
-            listener.remove();
-            api.event.clearInstanceListeners(marker);
-            marker.map = null;
-          });
-          api.event.clearInstanceListeners(instance);
-          map.current = null;
-        };
         setStatus('ready');
-      })
-      .catch(() => {
-        if (!disposed) setStatus('error');
-      });
+      },
+      () => {
+        map.current = null;
+        setStatus('error');
+      },
+    );
     return () => {
-      disposed = true;
       cleanup();
-      unsubscribe();
+      map.current = null;
     };
   }, [requested, p]);
   async function estimate(id: string) {
@@ -97,8 +72,8 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
       const data = await response.json();
       const text =
         response.ok && data.status === 'available'
-          ? `${data.distanceKm} km · approximately ${data.minutes} min driving. Google Routes, checked ${new Date(data.checkedAt).toLocaleTimeString()}. Traffic not included.`
-          : 'Live route unavailable. Stored context remains below; check Google Maps for your journey.';
+          ? `${data.distanceKm} km · approximately ${data.minutes} min driving. openrouteservice / OpenStreetMap, checked ${new Date(data.checkedAt).toLocaleTimeString()}. Traffic not included.`
+          : 'Live route unavailable. Stored context remains below; use the external maps link for your journey.';
       setRoute((r) => ({ ...r, [id]: text }));
     } catch {
       if (!controller.signal.aborted)
@@ -173,7 +148,7 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
             className="location-map"
             style={{ visibility: status === 'ready' ? 'visible' : 'hidden' }}
             aria-hidden={status !== 'ready'}
-            aria-label={`Google map for ${p.label}`}
+            aria-label={`Street map for ${p.label}`}
           />
           {status !== 'ready' && (
             <div className="location-map-fallback">
@@ -187,13 +162,11 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
                   ? 'Opening the neighbourhood…'
                   : status === 'error'
                     ? 'The map could not be loaded. Location details and Google Maps links remain available.'
-                    : !configured
-                      ? 'Interactive map is not connected yet. Explore the locality using the link alongside.'
-                      : !p.verified
-                        ? 'The exact site pin awaits verification. No approximate project marker is shown.'
-                        : 'Explore this address and its surroundings.'}
+                    : !p.verified
+                      ? 'Explore a regional overview. The exact site is unverified; no project marker is shown.'
+                      : 'Explore this address and its surroundings.'}
               </output>
-              {configured && p.verified && status === 'idle' && (
+              {status === 'idle' && (
                 <button
                   onClick={() => {
                     setStatus('loading');
@@ -209,12 +182,16 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
             <button
               className="location-reset"
               onClick={() => {
-                if (p.coordinates) map.current?.setCenter(p.coordinates);
-                map.current?.setZoom(13);
+                map.current?.setCenter(
+                  p.verified && p.coordinates
+                    ? p.coordinates
+                    : { lat: 22, lng: 79 },
+                );
+                map.current?.setZoom(p.verified && p.coordinates ? 13 : 3.5);
                 setSelected(null);
               }}
             >
-              Return to project
+              {p.verified ? 'Return to project' : 'Regional overview'}
             </button>
           )}
         </div>
@@ -271,7 +248,7 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
                 )}
                 <button
                   onClick={() => void estimate(n.id)}
-                  disabled={route[n.id] === 'Checking driving route?'}
+                  disabled={route[n.id]?.startsWith('Checking driving route')}
                 >
                   Check driving route
                 </button>
@@ -286,7 +263,7 @@ export function ProjectLocation({ location: p }: { location: PublicLocation }) {
       )}
       <p className="location-provenance">
         Fictional property collection. Editorial context is separate from live
-        Google routing. Visit dates remain requests until staff confirmation.
+        provider routing. Visit dates remain requests until staff confirmation.
       </p>
     </section>
   );

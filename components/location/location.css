@@ -207,3 +207,21 @@
   position: absolute;
   inset: 0;
 }
+.location-map .maplibregl-ctrl-group button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+.location-map .maplibregl-ctrl-attrib {
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: calc(100% - 12px);
+}
+.location-map .location-marker {
+  min-width: 44px;
+  color: #284831;
+  background: #faf7ed;
+  border: 2px solid #284831;
+  border-radius: 50%;
+  padding: 8px;
+}

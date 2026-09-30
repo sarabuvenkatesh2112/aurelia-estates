@@ -31,7 +31,7 @@ for (const path of [...client, ...assets]) {
   const content = readFileSync(path, 'utf8');
   if (
     secrets.some((value) => content.includes(value)) ||
-    /GOOGLE_MAPS_SERVER_API_KEY|GEMINI_API_KEY|OPENAI_API_KEY|META_APP_SECRET|WHATSAPP_ACCESS_TOKEN|BETTER_AUTH_SECRET|DATABASE_URL|DIRECT_URL|postgres(?:ql)?:\/\/[^\s"']+:[^\s"']+@/.test(
+    /OPENROUTESERVICE_API_KEY|GOOGLE_MAPS_SERVER_API_KEY|GEMINI_API_KEY|OPENAI_API_KEY|META_APP_SECRET|WHATSAPP_ACCESS_TOKEN|BETTER_AUTH_SECRET|DATABASE_URL|DIRECT_URL|postgres(?:ql)?:\/\/[^\s"']+:[^\s"']+@/.test(
       content,
     )
   )

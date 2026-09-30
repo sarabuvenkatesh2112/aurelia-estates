@@ -2,9 +2,7 @@
 
 ## Saved-state continuation and status
 
-Local implementation, automated verification and the final shared visit-control browser check are finished. Live Gemini positive/negative location checks passed on 29 September after the user replaced the key locally and restarted the development server. Google Maps credentials are absent; no live Google Maps/Routes result has been claimed. Nothing was published, deployed, uploaded or pushed.
-
-The Google-specific status is: **Phase 9 local implementation complete; live Google Maps verification pending.** The separate live Gemini location verification is now complete.
+**Phase 9 free-map integration complete.** On 30 September 2026 the Google browser/routing implementations were replaced with MapLibre GL JS 6.11.2 and an optional server-side openrouteservice adapter. The live OSM-backed map works locally without a key or paid billing. Live routing remains unconfigured; no route result is claimed. The two real Gemini/Neon checks passed on 29 September and were not repeated or changed by the map replacement. Nothing was published, deployed, uploaded or pushed.
 
 Phase 8 status is unchanged: **Phase 8 local implementation complete; live Meta verification pending due to external test-number provisioning.** No Meta retry was attempted.
 
@@ -16,21 +14,21 @@ Phase 8 status is unchanged: **Phase 8 local implementation complete; live Meta 
 - Nearby relationships gain a source, context note and verification timestamp. Restaurant and park categories supplement existing categories. Original fictional records remain illustrative; no factual addresses, coordinates or commute figures were invented.
 - The local PostgreSQL cluster and configuration are untouched. Apply pending additive migrations explicitly in local mode before using Phase 9 against that fallback; this closeout does not claim the local fallback was migrated or retested.
 
-## Public location and Google boundaries
+## Public location and replaceable provider boundaries
 
-`lib/location/contracts.ts` validates coordinates, slugs, editorial inputs and safe Google Maps URLs. `repository.ts` projects only public project/location fields. Archived/deleted projects are excluded. A nearby record requires a non-illustrative flag, source and verification timestamp within 180 days before its stored distance/time can appear. Unverified or expired numbers are returned as `null`, not zero. Exact-site directions require verified project coordinates; otherwise only a clearly labelled locality search link is exposed.
+Public projection, provenance, verified-coordinate rules, safe external Google Maps links and nearby cards are unchanged. External links are ordinary URLs, not Google API dependencies. No Google API credential remains in active runtime usage.
 
-`google-maps.ts` loads the official Maps JavaScript script once, only after the user requests an interactive map on a verified location. There is no homepage/global Google script. The component removes marker listeners and map listeners on unmount, uses cooperative gestures with wheel zoom disabled, and keeps a fixed responsive map area. Missing key, script failure, authentication failure and a 12-second loading timeout retain the textual fallback. Advanced markers use the Google demo map ID for local testing; configure an owned map ID before any future production rollout.
+The UI depends on the provider-neutral MapHandle/MapOptions contract in lib/location/browser-map.ts. Its cancellable mount owns one container, prevents overlapping mounts, aborts pending work and removes map resources on timeout/unmount. lib/location/maplibre-map.ts loads MapLibre and a same-origin stylesheet only after the user clicks Load interactive map. Worker and shared module assets are copied from the installed package by scripts/sync-map-assets.mjs before dev/build; an explicit same-origin worker URL avoids Turbopack relocating the default URL. The original Google adapter can be restored behind this boundary in future without replacing business logic.
 
-`google-routes.ts` calls only the official Routes API with server-selected stored coordinates, a restricted response field mask and an eight-second timeout. The public endpoint accepts only a project slug and a nearby-relationship UUID belonging to that project. It accepts no URL, free-form address, origin coordinates or Google query. Both points must be verified. Concurrent calls for the same pair are coalesced for 30 seconds; the process-local request cooldown and map are bounded. This is local protection, not a claim of distributed production quota enforcement.
+A verified project uses its stored coordinates and verified nearby markers. An unverified fictional project opens a clearly labelled regional India overview at zoom 3.5, with no project/nearby markers. The viewport center is not saved as a project coordinate or used for directions or distance calculations. No seed or schema was changed.
 
-Routes are driving estimates without traffic, explicitly attributed to Google with a retrieval time. Stored editorial estimates remain separately labelled. No geocoding, Places discovery, scraped data, straight-line distance approximation, or permanent storage of Google route content is used. Missing/restricted/quota/invalid/malformed/timeout responses become a safe unavailable state without raw provider diagnostics or credentials.
+The public /api/location/map-config/ endpoint returns only validated public tile URL/attribution. Defaults use https://tile.openstreetmap.org/{z}/{x}/{y}.png with permanently visible OpenStreetMap attribution. Optional MAP_TILE_URL and MAP_TILE_ATTRIBUTION allow a different HTTPS raster source without component changes; values must be public and contain no credentials, query parameters or attribution HTML. Invalid configuration leaves the textual fallback. Browser caching/referrers are retained; no tile proxy, bulk downloads, prefetch or offline feature is added. OSM standard tiles are best-effort, for modest demo traffic, not unlimited production hosting. See https://operations.osmfoundation.org/policies/tiles/.
 
-Official API references used during implementation:
+The map keeps its fixed responsive height, disables wheel zoom, enables cooperative gestures, provides 44px zoom controls and keyboard-accessible marker buttons, and retains textual alternatives. Startup is bounded to 12 seconds. Map errors restore the fallback; map listeners, markers, workers and renderer resources are released by remove(). The shared JS/CSS asset promise prevents duplicate loading. Physical touchscreen behavior was not tested on hardware.
 
-- [Maps JavaScript loading](https://developers.google.com/maps/documentation/javascript/load-maps-js-api)
-- [Google Maps URLs](https://developers.google.com/maps/documentation/urls/get-started)
-- [Routes API](https://developers.google.com/maps/documentation/routes/compute_route_directions)
+lib/location/route-provider.ts implements the existing route-estimate shape using official openrouteservice POST /v2/directions/driving-car/json. OPENROUTESERVICE_API_KEY stays server-only in the Authorization header. Coordinates are validated and ordered longitude/latitude, geometry/instructions are omitted, the timeout remains eight seconds, and returned distance/duration bounds are validated. No raw errors or credentials reach the UI. Missing key, denied/quota, malformed response, timeout and invalid coordinates return safe unavailable states. Live routing requires a free provider account/key and verified stored endpoints; it was not attempted.
+
+The route endpoint still accepts only a project slug and a related nearby UUID, never browser coordinates, addresses or arbitrary URLs. Verified-coordinate guards, 30-second request coalescing, bounded process-local cooldown and no-store responses are preserved. These are local protections, not a claim of distributed production quota enforcement. Route results remain separate from stored editorial estimates and are attributed to openrouteservice/OpenStreetMap. There is no geocoding, scraping or fabricated travel data.
 
 ## UI, visits and search
 
@@ -67,7 +65,7 @@ Resolved on 29 September 2026: the user replaced the server-side key locally and
 
 Both checks passed with completed final responses. This verifies these two cases, not universal hallucination immunity. The focused script retains assertions and public tool evidence. The first sandbox launch failed before executing tests; the permitted retry completed successfully. No migration, database writes, live Google call or historical suite rerun occurred.
 
-## Verification record
+## Original verification record - 29 September 2026 (before provider replacement)
 
 | Check | Result |
 | --- | --- |
@@ -99,15 +97,33 @@ Evidence: `.cache/phase9-location-desktop.png` and `.cache/phase9-visit-directio
 
 ## Configuration and remaining boundary
 
-Configure locally; never paste values in chat:
+No environment variable is required for the default live map. Optional public raster configuration: MAP_TILE_URL and MAP_TILE_ATTRIBUTION. Optional server-only live routing: OPENROUTESERVICE_API_KEY (currently absent). .env.example contains empty placeholders only. Existing ignored Google credentials, if any, were neither read nor rewritten; the runtime no longer consumes them. The corrected GEMINI_API_KEY continues to power the existing concierge.
 
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — intentionally browser-visible; restrict it to Maps JavaScript API and authorized HTTP referrers.
-- `GOOGLE_MAPS_SERVER_API_KEY` — server-only Routes key; API-restrict it and never expose it through a public variable.
-The existing server-side `GEMINI_API_KEY` was corrected locally and both live Gemini checks passed; it is no longer a pending configuration requirement.
+Live routing is the only provider verification still pending for this replacement. Fictional inventory does not supply verified exact-site/nearby endpoints; a routing key alone must not promote illustrative data into facts. Public OSM tiles have no SLA; choose a suitable provider/self-hosted service for future production traffic. Paid billing is not required for the implemented map.
 
-After credentials are supplied, verify actual map loading/markers and Routes responses using genuinely verified site/nearby coordinates. The fictional seed does not provide verified exact-site pins; a valid Google key alone must not turn concept data into factual site directions.
+## Free-map verification - 30 September 2026
 
-## Exact source files changed in Phase 9
+- 12 focused tests passed: config/defaults and unsafe input, lazy singleton JS/CSS, duplicate/pending mount cancellation, cleanup, startup timeout, routing no-key/invalid/denied/quota/malformed/timeout/success parsing, safe directions, provenance, five-role policy and bounded Gemini protocol. Only the affected provider test was repeated after a test-only lint correction.
+- TypeScript and lint passed. Production build passed (13 static pages plus dynamic routes), including final TypeScript. Client/public secret scan: 47 client files and 36 public files, zero matches.
+- Actual browser at 390, 768, 1440 and 1920px: no horizontal overflow, one canvas, fixed map heights 330/380/440px, no fictional project marker, visible OSM attribution and 44px zoom controls. Before requesting the map, zero map canvases and no MapLibre stylesheet were present. Live raster tiles rendered after requesting it.
+- Navigation back to the homepage removed the map canvas; returning to the project started with zero canvases and required a new explicit map request. Tab moved from Zoom in to Zoom out. Scrolling over the map moved the page (6124.8 to 6396.8px); the page was not trapped. Nearby hospital filtering and the guest visit location disclosure passed with no overflow. No visit was submitted.
+- Initial browser verification exposed a module-worker URL error; explicit same-origin assets fixed it. Only that historical console entry and the existing Next image advisory remain; no new post-fix map error was observed.
+- No direct inventory/customer mutations, migrations, reseeds, staff grants, auth changes or historical-suite reruns. Admin RBAC implementation and Gemini provider/tool loop are unchanged; the previous live Gemini successes are retained.
+- npm reported an existing moderate fast-uri advisory through the Prisma development dependency chain (GHSA-hrr3-gc8f-f4qj). No unrelated dependency upgrade was performed. Physical touch hardware, live routing and production traffic/load remain unverified.
+
+Evidence: .cache/phase9-free-map-desktop.png and .cache/phase9-free-map-mobile.png.
+
+### Exact files changed by this provider replacement
+
+Modified: .env.example; package.json; package-lock.json; app/api/projects/[slug]/location/route-estimate/route.ts; components/location/project-location.tsx; components/location/location.css; scripts/location-secret-scan.mjs; tests/location-loader.test.ts; tests/location-provider.integration.ts; README.md; this document.
+
+Added: app/api/location/map-config/route.ts; lib/location/browser-map.ts; lib/location/map-config.ts; lib/location/maplibre-map.ts; lib/location/route-provider.ts; scripts/sync-map-assets.mjs; public/vendor/maplibre-gl.css; public/vendor/maplibre-gl-worker.mjs; public/vendor/maplibre-gl-shared.mjs; public/vendor/maplibre-LICENSE.txt.
+
+Removed superseded adapters: lib/location/google-maps.ts and lib/location/google-routes.ts.
+
+The original Phase 9 implementation inventory below is retained as historical context; superseded Google adapters are no longer current files.
+
+## Original Phase 9 source inventory (historical)
 
 Existing files:
 
