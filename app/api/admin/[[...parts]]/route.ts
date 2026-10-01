@@ -1,7 +1,7 @@
 import { adminRead } from '@/lib/admin/repository';
 import { adminMutate } from '@/lib/admin/mutations';
 import { requireStaff } from '@/lib/admin/auth';
-import { PublicError, readBody, errorResponse } from '@/lib/http';
+import { PublicError, readBody, errorResponse, sameOrigin } from '@/lib/http';
 import { revalidatePath, revalidateTag } from 'next/cache';
 type Context = { params: Promise<{ parts?: string[] }> };
 async function handle(request: Request, context: Context) {
@@ -21,7 +21,7 @@ async function handle(request: Request, context: Context) {
     else {
       if ((request.method === 'PATCH') !== !!id)
         throw new PublicError('Unsupported operation.', 405);
-      if (request.headers.get('origin') !== new URL(request.url).origin)
+      if (!sameOrigin(request))
         throw new PublicError('A same-origin request is required.', 403);
       result = await adminMutate(
         resource,

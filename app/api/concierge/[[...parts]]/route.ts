@@ -13,6 +13,7 @@ import { safeText, filtersSchema } from '@/lib/ai/contracts';
 import { runConcierge, providerReady } from '@/lib/ai/provider';
 import { confirmedAction } from '@/lib/ai/actions';
 import { providerFailure } from '@/lib/ai/provider-errors';
+import { secureApplicationCookie } from '@/lib/site-url';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ async function handle(request: Request, context: Context) {
       if (identity.cookie)
         response.headers.set(
           'Set-Cookie',
-          `${guestCookie}=${identity.cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${new URL(request.url).protocol === 'https:' ? '; Secure' : ''}`,
+          `${guestCookie}=${identity.cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secureApplicationCookie(request.url) ? '; Secure' : ''}`,
         );
       return response;
     };

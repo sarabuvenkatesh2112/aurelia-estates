@@ -1,10 +1,12 @@
 # Aurelia Estates
 
-A cinematic luxury real-estate portfolio concept, built as the frontend foundation of a future property platform. Phase 1 established the art direction, accessible interactions and data model. Phase 2 adds the finished cinematic motion system. Phase 3 adds an original Blender model and a scroll-directed interactive architectural journey while preserving that foundation. Phase 4 completes the database-backed property platform with Neon PostgreSQL, dedicated project pages, advanced discovery and persisted requests. Phase 5 completes authenticated customer accounts, persistent private collections and account-owned visit/enquiry requests. Phase 6 completes the secure Aurelia Private Office, staff roles, CRM, visit operations, inventory workflows and audit trail.
+A cinematic luxury real-estate portfolio and property platform. Phases 1–3 established its art direction, motion and original Blender architectural journey. Phases 4–6 added Neon PostgreSQL, authenticated customer collections/requests and the five-role Private Office CRM. Phase 7 added the grounded Gemini concierge; Phase 8 completed the local WhatsApp architecture (live Meta verification remains pending); Phase 9 added MapLibre/OpenStreetMap. Phase 10 local production hardening is complete. Everything remains local and uncommitted; nothing has been deployed.
 
 **Aurelia Estates is fictional.** Listings, developers, prices, dates, distances, brand statistics and testimonials are illustrative. Photography is architectural mood imagery and does not depict the listed residences. Visit and enquiry forms now store submitted contact details and requests in Neon. Public submissions remain requests until an authorized staff member explicitly confirms them.
 
 ## Phase 1 (original scope)
+
+The phase sections below retain their historical results. The current runtime is the Node/Neon platform described above; current readiness and limitations are consolidated in the Phase 10 report.
 
 - Full-screen architectural hero with a wordmark prelude, coordinated GSAP reveal, subtle pointer depth and magnetic primary action.
 - Responsive desktop navigation and a choreographed mobile menu with focus management and Escape dismissal.
@@ -20,7 +22,7 @@ A cinematic luxury real-estate portfolio concept, built as the frontend foundati
 
 ## Stack
 
-Next.js 16.3.4 with App Router, React 19, TypeScript, Tailwind CSS 4, Motion for React, GSAP + ScrollTrigger, Lenis, Lucide React, Three.js 0.182.0, React Three Fiber and Drei. Prisma 7, the PostgreSQL adapter, Neon PostgreSQL and Zod provide the server data layer. Better Auth and Argon2id provide customer authentication and password hashing. Base UI supplies accessible dialog/select primitives. Oxlint and Oxfmt handle linting and formatting. Exact installed versions are recorded in `package.json` and `package-lock.json`.
+Next.js 16.3.6 with App Router, React 19, TypeScript, Tailwind CSS 4, Motion for React, GSAP + ScrollTrigger, Lenis, Lucide React, Three.js 0.182.0, React Three Fiber and Drei. Prisma 7, the PostgreSQL adapter, Neon PostgreSQL and Zod provide the server data layer. Better Auth and Argon2id provide customer authentication and password hashing. Base UI supplies accessible dialog/select primitives. Oxlint and Oxfmt handle linting and formatting. Exact installed versions are recorded in `package.json` and `package-lock.json`.
 
 ## Local setup
 
@@ -255,7 +257,7 @@ Final TypeScript, lint, production build, 31 local regression tests and six HTTP
 
 The PostgreSQL query-queuing warning is fixed: Prisma relation reads inside one transaction now use a transaction-local async queue before reaching the single pg client. Pool concurrency, transaction isolation, errors and cleanup are preserved; neither warning suppression nor a dependency downgrade was used. A fresh real Gemini browser search returned six units whose references matched fresh Neon reads after the fix.
 
-Known limits: free-tier/provider availability, finite model safety coverage and the existing gallery image-priority notice. Physical devices, other browsers and production abuse/load hardening are outside this local closure. The retained local fallback currently has an empty catalogue; connection, schema reads, temporary writes, rollback and pool cleanup were verified without seeding it. See [architecture/configuration](docs/PHASE-7-CONCIERGE.md) and [the detailed final audit](docs/PHASE-7-AUDIT.md). No credentials were exposed and nothing was published or uploaded.
+Known Phase 7 limits: free-tier/provider availability, finite model safety coverage and the existing gallery image-priority notice. Physical devices, other browsers and sustained load remain unverified. Phase 10 subsequently completed local auth/proxy abuse hardening. The retained local fallback currently has an empty catalogue; connection, schema reads, temporary writes, rollback and pool cleanup were verified without seeding it. See [architecture/configuration](docs/PHASE-7-CONCIERGE.md) and [the detailed final audit](docs/PHASE-7-AUDIT.md). No credentials were exposed and nothing was published or uploaded.
 
 ## PHASE 8 - LOCAL IMPLEMENTATION VERIFIED; LIVE META PENDING
 
@@ -276,4 +278,16 @@ Optional tile configuration names: MAP_TILE_URL and MAP_TILE_ATTRIBUTION. Option
 
 Final verification: 12 focused tests, TypeScript, lint, production build and secret scan passed (47 client files + 36 public files, zero matches). Browser checks passed at 390/768/1440/1920px, including demand loading, one map canvas, attribution, keyboard controls, page scrolling, nearby filtering and visit disclosure. A worker URL issue found in testing was fixed with version-matched same-origin assets. The two real Gemini/Neon location tests from 29 September remain passed; no paid model retry or migration was needed.
 
-See [Phase 9 architecture, exact file inventory and audit](docs/PHASE-9-LOCATION-INTELLIGENCE.md). Live routing and physical-device touch validation remain unverified. Existing image advisories and a moderate fast-uri advisory in the Prisma dependency chain are documented. No database migration/reset, animation change or unrelated functionality change was made. Nothing was deployed, published or pushed.
+See [Phase 9 architecture, exact file inventory and audit](docs/PHASE-9-LOCATION-INTELLIGENCE.md). Live routing and physical-device touch validation remain unverified. Existing image advisories remain; the then-reported fast-uri dependency advisory was patched in Phase 10. No database migration/reset, animation change or unrelated functionality change was made. Nothing was deployed, published or pushed.
+
+## Phase 10 — local production hardening complete
+
+**Phase 10 local production hardening complete; Aurelia Estates is ready for the separate deployment step.** See the [complete hardening report, exact file inventory and deployment procedure](docs/PHASE-10-FINAL-HARDENING.md) and [final audit](QUALITY-AUDIT.md#phase-10-final-audit---2-october-2026).
+
+Completed: security headers, explicit production URL validation, consistent fictional/noindex metadata, request-local project-query reuse, trusted-proxy auth identity, database-backed throttling verification, HTTPS origin/cookie handling and compatible security patches. Existing animations, 3D, schema and migrations were preserved.
+
+Verification passed: 101 automated test entries (including parent groups), four live Gemini/Neon checks, 56 role/resource API combinations, 189 responsive layouts across nine widths, TypeScript, lint, production build and actual local production-server smoke. Dependency audit: zero vulnerabilities. Client/public/server-build secret scan: zero matches. Neon TLS and the independent local PostgreSQL fallback were verified; public inventory remains 8 projects / 96 units. This run's disposable saved search was removed and 17 QA sessions expired; older data/history and private fictional QA provenance were preserved.
+
+Required production server names: `DATABASE_URL`, `DIRECT_URL`, `SITE_URL`, `AUTH_BASE_URL`, `BETTER_AUTH_SECRET`, `AUTH_TRUSTED_IP_HEADER`, `GEMINI_API_KEY`. Configure public HTTPS origins before build/start, use an ingress that overwrites the chosen single-IP header, and block direct origin access. Do not ship local environment/QA files. Use the report's migration-review, Node build/start and recovery procedure; never reset or reseed the existing Neon database.
+
+**Phase 8 local implementation complete; live Meta verification pending.** Optional live routing remains unavailable with a safe textual fallback; no Google Maps API is required. Only Chromium was available. Firefox/WebKit, physical devices, formal WCAG/Core Web Vitals/load assessment and real ingress/TLS remain unverified. Existing dev image and non-blocking Three shader warnings remain documented. The fictional portfolio intentionally retains noindex/nofollow. No deployment, commit, publication or push was performed.

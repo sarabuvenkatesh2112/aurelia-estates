@@ -8,6 +8,7 @@ import { parse } from 'dotenv';
 import { getDb } from '@/lib/db/prisma';
 import { headers } from 'next/headers';
 import { PublicError } from '@/lib/http';
+import { applicationUrl } from '@/lib/site-url';
 import {
   nameSchema,
   phoneSchema,
@@ -17,7 +18,21 @@ const local = existsSync('.env.auth') ? parse(readFileSync('.env.auth')) : {};
 const secret = process.env.BETTER_AUTH_SECRET || local.BETTER_AUTH_SECRET;
 if (!secret || secret.length < 32)
   throw new Error('Authentication secret configuration is required.');
-const configured = process.env.AUTH_BASE_URL;
+const configured = process.env.AUTH_BASE_URL
+  ? applicationUrl(process.env.AUTH_BASE_URL)
+  : process.env.NODE_ENV === 'production'
+    ? applicationUrl()
+    : undefined;
+if (
+  configured &&
+  !['localhost', '127.0.0.1'].includes(new URL(configured).hostname) &&
+  !['x-aurelia-proxy-ip', 'cf-connecting-ip', 'x-real-ip'].includes(
+    process.env.AUTH_TRUSTED_IP_HEADER || '',
+  )
+)
+  throw new Error(
+    'Configure an ingress-overwritten AUTH_TRUSTED_IP_HEADER for public authentication.',
+  );
 if (
   configured &&
   new URL(configured).protocol !== 'https:' &&

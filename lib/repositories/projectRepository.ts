@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { Prisma } from '@/generated/prisma/client';
 import { getDb } from '@/lib/db/prisma';
 import type { SearchFilters } from '@/lib/validation/search';
@@ -108,7 +109,7 @@ export async function searchProjects(filters: SearchFilters) {
     { isolationLevel: 'RepeatableRead', maxWait: 15000, timeout: 20000 },
   );
 }
-export const getProjectRecord = (slug: string) =>
+export const getProjectRecord = cache((slug: string) =>
   getDb().project.findFirst({
     where: { slug, deletedAt: null, status: { not: 'ARCHIVED' } },
     include: {
@@ -118,14 +119,15 @@ export const getProjectRecord = (slug: string) =>
         orderBy: { sortOrder: 'asc' },
       },
     },
-  });
+  }),
+);
 export async function getInventory(
   projectId: string,
   page = 1,
   availability?: 'AVAILABLE',
 ) {
   const where = { projectId, ...(availability ? { availability } : {}) };
-  const [units, total, summary] = await Promise.all([
+  const [units, total, summary, available] = await Promise.all([
     getDb().unit.findMany({
       where,
       include: { tower: true, floor: true, unitType: true },
@@ -143,14 +145,13 @@ export async function getInventory(
       _min: { currentPrice: true, builtUpAreaSqft: true },
       _max: { currentPrice: true, builtUpAreaSqft: true },
     }),
+    getDb().unit.count({ where: { projectId, availability: 'AVAILABLE' } }),
   ]);
   return {
     units,
     total,
     summary,
-    available: await getDb().unit.count({
-      where: { projectId, availability: 'AVAILABLE' },
-    }),
+    available,
   };
 }
 export async function getFacets() {

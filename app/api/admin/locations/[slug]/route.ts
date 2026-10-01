@@ -1,5 +1,5 @@
 import { readLocationEditor, editLocation } from '@/lib/location/admin';
-import { errorResponse, readBody, PublicError } from '@/lib/http';
+import { errorResponse, readBody, PublicError, sameOrigin } from '@/lib/http';
 import { revalidatePath } from 'next/cache';
 type Context = { params: Promise<{ slug: string }> };
 export async function GET(request: Request, { params }: Context) {
@@ -14,9 +14,7 @@ export async function GET(request: Request, { params }: Context) {
 }
 export async function PATCH(request: Request, { params }: Context) {
   try {
-    const url = new URL(request.url);
-    const origin = `${url.protocol}//${request.headers.get('host') || url.host}`;
-    if (request.headers.get('origin') !== origin)
+    if (!sameOrigin(request))
       throw new PublicError('A same-origin request is required.', 403);
     const { slug } = await params;
     const result = await editLocation(

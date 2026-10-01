@@ -1,4 +1,5 @@
 import 'server-only';
+import { applicationUrl } from '@/lib/site-url';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { getDb } from '@/lib/db/prisma';
@@ -300,7 +301,7 @@ export function preparedText(
     visit = thread.visit;
   if (kind === 'PROPERTY_HANDOFF') {
     if (!thread.project?.slug) throw new PublicError('Link a project through CRM first.');
-    return `Explore ${project} on Aurelia: ${(process.env.SITE_URL || 'http://localhost:3000').replace(/\/$/, '')}/residences/${thread.project?.slug || ''}/ . Use Schedule a visit or Make an enquiry and review your details before submitting. A submitted visit is a request, not a confirmed appointment.`;
+    return `Explore ${project} on Aurelia: ${applicationUrl()}/residences/${thread.project?.slug || ''}/ . Use Schedule a visit or Make an enquiry and review your details before submitting. A submitted visit is a request, not a confirmed appointment.`;
   }
   if (kind === 'ENQUIRY_RECEIVED') {
     if (!thread.enquiry?.reference)

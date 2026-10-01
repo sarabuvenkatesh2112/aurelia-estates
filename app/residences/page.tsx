@@ -12,6 +12,7 @@ import {
 import { parseSearch } from '@/lib/validation/search';
 export const dynamic = 'force-dynamic';
 export const metadata = {
+  alternates: { canonical: '/residences/' },
   title: 'The collection | Aurelia Estates',
   description:
     'Explore fictional Indian residences by location, budget, configuration and available inventory.',
@@ -65,7 +66,10 @@ export default async function Collection({
         </div>
         <SearchForm key={params.toString()} facets={facets} values={values} />
         {parsed.filters && (
-          <SaveSearch key={'saved-' + params.toString()} filters={parsed.filters} />
+          <SaveSearch
+            key={'saved-' + params.toString()}
+            filters={parsed.filters}
+          />
         )}
         {parsed.error ? (
           <p role="alert" className="catalog-empty">

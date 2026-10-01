@@ -99,7 +99,17 @@ export const projectDetail = cache(async (slug: string, page = 1) => {
     return null;
   const project = await getProjectRecord(slug);
   if (!project) return null;
-  const inventory = await getInventory(project.id, page);
+  const [inventory, related, location] = await Promise.all([
+    getInventory(project.id, page),
+    searchCollection(
+      searchSchema.parse({
+        city: project.location.city,
+        type: project.propertyType,
+        pageSize: 6,
+      }),
+    ),
+    projectLocation(slug),
+  ]);
   const summary = {
     minPrice: inventory.summary._min.currentPrice!,
     maxPrice: inventory.summary._max.currentPrice!,
@@ -108,16 +118,9 @@ export const projectDetail = cache(async (slug: string, page = 1) => {
     available: BigInt(inventory.available),
   };
   const property = toProperty(project, summary);
-  const related = await searchCollection(
-    searchSchema.parse({
-      city: project.location.city,
-      type: project.propertyType,
-      pageSize: 6,
-    }),
-  );
   return {
     property,
-    location: await projectLocation(slug),
+    location,
     description: project.longDescription,
     media: project.media.map((m) => ({
       id: m.id,

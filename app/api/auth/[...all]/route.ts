@@ -1,6 +1,7 @@
 import { auth, currentCustomer } from '@/lib/auth/server';
 import { readBody, errorResponse, PublicError } from '@/lib/http';
 import { signUpSchema, signInSchema } from '@/lib/validation/customer';
+import { trustedClientIp } from '@/lib/auth/request-ip';
 export const runtime = 'nodejs';
 export async function GET(request: Request) {
   try {
@@ -40,8 +41,18 @@ export async function POST(request: Request) {
     const h = new Headers(request.headers);
     h.delete('content-length');
     h.set('content-type', 'application/json');
-    // Local-only server: never trust a caller-supplied forwarding address for rate limits.
-    h.set('x-aurelia-client', '127.0.0.1');
+    const publicUrl = process.env.AUTH_BASE_URL || process.env.SITE_URL;
+    const publicHost =
+      !!publicUrl &&
+      !['localhost', '127.0.0.1'].includes(new URL(publicUrl).hostname);
+    h.set(
+      'x-aurelia-client',
+      trustedClientIp(
+        request.headers,
+        process.env.AUTH_TRUSTED_IP_HEADER,
+        publicHost,
+      ),
+    );
     const authUrl = new URL(request.url);
     authUrl.pathname = path;
     const result = await auth.handler(

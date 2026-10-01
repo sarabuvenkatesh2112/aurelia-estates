@@ -20,6 +20,7 @@ import {
   Contact,
 } from '@/components/sections/editorial-sections';
 export const dynamic = 'force-dynamic';
+export const metadata = { alternates: { canonical: '/' } };
 export default async function Home() {
   const collection = await homepageCollection().catch(() => ({
     properties: [],

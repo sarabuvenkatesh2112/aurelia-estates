@@ -14,25 +14,24 @@ export function errorResponse(error: unknown) {
         error: 'Please check the highlighted information.',
         fields: z.flattenError(error).fieldErrors,
       },
-      { status: 400 },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
     );
   if (error instanceof PublicError)
-    return Response.json({ error: error.message }, { status: error.status });
+    return Response.json(
+      { error: error.message },
+      { status: error.status, headers: { 'Cache-Control': 'no-store' } },
+    );
   return Response.json(
     {
       error:
         'The collection is temporarily unavailable. Please try again shortly.',
     },
-    { status: 503 },
+    { status: 503, headers: { 'Cache-Control': 'no-store' } },
   );
 }
 export async function readBody(request: Request, maxBytes = 8192) {
   const origin = request.headers.get('origin');
-  if (
-    origin &&
-    new URL(origin).host !==
-      (request.headers.get('host') || new URL(request.url).host)
-  )
+  if (origin && !sameOrigin(request))
     throw new PublicError('This request could not be accepted.', 403);
   if (!request.headers.get('content-type')?.includes('application/json'))
     throw new PublicError('A JSON request is required.', 415);
@@ -56,5 +55,22 @@ export async function readBody(request: Request, maxBytes = 8192) {
     return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
   } catch {
     throw new PublicError('Request information could not be read.');
+  }
+}
+export function sameOrigin(request: Request) {
+  try {
+    const origin = request.headers.get('origin');
+    if (!origin) return false;
+    const configured = process.env.AUTH_BASE_URL || process.env.SITE_URL;
+    const target =
+      configured &&
+      !['localhost', '127.0.0.1'].includes(new URL(configured).hostname)
+        ? new URL(configured).origin
+        : `${new URL(request.url).protocol}//${request.headers.get('host') || new URL(request.url).host}`;
+    return (
+      new URL(origin).origin === target && origin === new URL(origin).origin
+    );
+  } catch {
+    return false;
   }
 }

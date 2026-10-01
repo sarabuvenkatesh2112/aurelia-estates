@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { sameOrigin } from '@/lib/http';
 import { phoneSchema } from '@/lib/validation/customer';
 import { can, type StaffRole } from '@/lib/admin/policy';
 
@@ -14,11 +15,17 @@ export const communicationText = z
       .refine(
         (v) =>
           !/[\p{Cc}\u202a-\u202e\u2066-\u2069]/u.test(
-            v.replace(/[\n\r\t]/g,''),
+            v.replace(/[\n\r\t]/g, ''),
           ),
         'Remove control characters.',
       ),
-  ).refine(v=>!/(?:AIza[\w-]{20,}|sk-[\w-]{16,}|postgres(?:ql)?:\/\/|bearer\s+[\w.-]{12,}|(?:password|api[_ -]?key|secret|token)\s*[:=]\s*\S+)/i.test(v),'Do not include passwords, keys or connection credentials'
+  )
+  .refine(
+    (v) =>
+      !/(?:AIza[\w-]{20,}|sk-[\w-]{16,}|postgres(?:ql)?:\/\/|bearer\s+[\w.-]{12,}|(?:password|api[_ -]?key|secret|token)\s*[:=]\s*\S+)/i.test(
+        v,
+      ),
+    'Do not include passwords, keys or connection credentials',
   );
 export const modeSchema = z.enum(['AI_ASSISTED', 'HUMAN', 'PAUSED']);
 export const listSchema = z
@@ -33,7 +40,14 @@ export const listSchema = z
   })
   .strict();
 export const commandSchema = z.discriminatedUnion('action', [
-  z.object({action:z.literal('follow_up'),title:communicationText,dueAt:z.iso.datetime({offset:true}),notes:communicationText.optional()}).strict(),
+  z
+    .object({
+      action: z.literal('follow_up'),
+      title: communicationText,
+      dueAt: z.iso.datetime({ offset: true }),
+      notes: communicationText.optional(),
+    })
+    .strict(),
   z
     .object({
       action: z.literal('mode'),
@@ -98,13 +112,7 @@ export function mayWrite(role: StaffRole) {
   return can(role, 'crm');
 }
 export function sameCommunicationOrigin(request: Request) {
-  const origin = request.headers.get('origin');
-  if (!origin) return false;
-  const expected = new URL(request.url);
-  // Next dev may expose its internal bind host in request.url. Host is the
-  // browser-requested authority; never accept arbitrary forwarded origins.
-  expected.host = request.headers.get('host') || expected.host;
-  return origin === expected.origin;
+  return sameOrigin(request);
 }
 export function mayAccess(
   role: StaffRole,
@@ -143,7 +151,9 @@ const rank: Record<string, number> = {
   READ: 5,
 };
 export function nextStatus(current: string, incoming: string) {
-  if(current==='FAILED'&&!['DELIVERED','READ'].includes(incoming))return current;
-  if(incoming==='FAILED'&&!['DELIVERED','READ'].includes(current))return 'FAILED';
+  if (current === 'FAILED' && !['DELIVERED', 'READ'].includes(incoming))
+    return current;
+  if (incoming === 'FAILED' && !['DELIVERED', 'READ'].includes(current))
+    return 'FAILED';
   return rank[incoming] >= rank[current] ? incoming : current;
 }
