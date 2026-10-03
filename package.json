@@ -26,7 +26,7 @@
     "test:admin:final": "node --conditions=react-server --import tsx --test tests/admin.final.integration.ts",
     "staff:bootstrap": "node --conditions=react-server --import tsx scripts/staff-bootstrap.ts",
     "predev": "node scripts/sync-map-assets.mjs",
-    "prebuild": "node scripts/sync-map-assets.mjs"
+    "prebuild": "node scripts/sync-map-assets.mjs && npm run db:generate"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
